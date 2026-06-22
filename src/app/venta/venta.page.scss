@@ -814,6 +814,56 @@
 }
 
 .exito-modal {
+  .confirmacion-contacto-body {
+    text-align: center;
+    padding: 8px 0 16px;
+  }
+
+  .confirmacion-contacto-valor {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #212529;
+    word-break: break-word;
+  }
+}
+
+.canal-contacto-opciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.canal-contacto-btn {
+  --border-radius: 12px;
+  margin: 0;
+  height: 48px;
+  font-weight: 600;
+
+  &.selected {
+    --background: #212529;
+    --color: #fff;
+  }
+}
+
+.confirmacion-contacto-body {
+  text-align: center;
+}
+
+.confirmacion-intro {
+  font-size: 15px;
+  color: #495057;
+}
+
+.confirmacion-contacto-valor {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #212529;
+  word-break: break-word;
+  margin: 12px 0;
+}
+
+.exito-modal {
   border-radius: 16px;
   max-width: 400px;
   animation: slideUp 0.3s ease-out;

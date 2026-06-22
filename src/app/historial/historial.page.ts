@@ -297,14 +297,7 @@ export class HistorialPage implements OnInit, OnDestroy {
   }
 
   esVentaDigitalPendiente(item: any): boolean {
-    if (item?.tipo !== 'venta-digital') {
-      return false;
-    }
-    return !!(
-      item?.pendienteRegistro ||
-      item?.participacion?.pendienteRegistro ||
-      item?.soloCodigo
-    );
+    return item?.tipo === 'venta-digital' && !!item?.pendienteRegistro;
   }
 
   /** Etiqueta «Digital» solo en participaciones digitales (venta digital, pool, recibidas). */
@@ -348,10 +341,13 @@ export class HistorialPage implements OnInit, OnDestroy {
     if (!this.esVentaDigitalPendiente(item)) {
       return false;
     }
+    if (item.notify_channel === 'email' || item.can_resend_email) {
+      return true;
+    }
     if (this.notifyAutoEnabled && item.buyer_sms_can_send === false) {
       return false;
     }
-    return true;
+    return item.notify_channel === 'sms' || item.notify_channel === 'whatsapp' || !item.notify_channel;
   }
 
   smsLimiteAlcanzado(item: any): boolean {
@@ -363,6 +359,9 @@ export class HistorialPage implements OnInit, OnDestroy {
   }
 
   getSmsButtonLabel(item: any): string {
+    if (item?.notify_channel === 'email' || item?.can_resend_email) {
+      return 'Reenviar correo';
+    }
     if (!this.notifyAutoEnabled) {
       return 'Abrir WhatsApp';
     }
@@ -531,17 +530,13 @@ export class HistorialPage implements OnInit, OnDestroy {
 
   private async enviarNotificacionTwilio(
     pendingId: number,
-    telefonoRaw: string,
+    telefonoRaw?: string,
     item?: any
   ): Promise<void> {
-    const telefono = telefonoRaw.trim();
-    if (!telefono) {
-      await this.mostrarAlerta('Teléfono no válido', 'Introduce el teléfono del comprador.');
-      return;
-    }
+    const telefono = telefonoRaw?.trim();
 
     this.enviandoNotificacion = true;
-    this.ventasService.sendPendingDigitalNotify(pendingId, telefono).subscribe({
+    this.ventasService.sendPendingDigitalNotify(pendingId, telefono || undefined).subscribe({
       next: async (res) => {
         this.enviandoNotificacion = false;
         if (res.success) {
@@ -572,6 +567,32 @@ export class HistorialPage implements OnInit, OnDestroy {
     if (event) {
       event.stopPropagation();
     }
+
+    const pendingId = this.resolvePendingId(item);
+    if (!pendingId) {
+      await this.mostrarAlerta('Error', 'No se puede enviar: venta pendiente no identificada.');
+      return;
+    }
+
+    if (item.notify_channel === 'email' || item.can_resend_email) {
+      this.enviandoNotificacion = true;
+      this.ventasService.resendPendingDigitalEmail(pendingId).subscribe({
+        next: async (res) => {
+          this.enviandoNotificacion = false;
+          if (res.success) {
+            await this.mostrarAlerta('Correo reenviado', res.message || 'Correo reenviado al comprador.');
+            return;
+          }
+          await this.mostrarAlerta('Error', res.message || 'No se pudo reenviar el correo.');
+        },
+        error: async (err) => {
+          this.enviandoNotificacion = false;
+          await this.mostrarAlerta('Error', err?.error?.message || 'Error al reenviar el correo.');
+        },
+      });
+      return;
+    }
+
     if (this.smsLimiteAlcanzado(item)) {
       await this.mostrarAlerta(
         'SMS no disponible',
@@ -583,47 +604,30 @@ export class HistorialPage implements OnInit, OnDestroy {
       return;
     }
 
-    const pendingId = this.resolvePendingId(item);
-    if (!pendingId) {
-      await this.mostrarAlerta('Error', 'No se puede enviar: venta pendiente no identificada.');
+    if (!this.notifyAutoEnabled) {
+      this.enviandoNotificacion = true;
+      this.ventasService.getPendingDigitalWhatsAppLink(pendingId).subscribe({
+        next: async (res) => {
+          this.enviandoNotificacion = false;
+          if (res.success && res.whatsapp_url) {
+            if (Capacitor.isNativePlatform()) {
+              window.location.href = res.whatsapp_url;
+            } else {
+              window.open(res.whatsapp_url, '_blank');
+            }
+            return;
+          }
+          await this.mostrarAlerta('Error', res.message || 'No se pudo abrir WhatsApp.');
+        },
+        error: async (err) => {
+          this.enviandoNotificacion = false;
+          await this.mostrarAlerta('Error', err?.error?.message || 'Error al abrir WhatsApp.');
+        },
+      });
       return;
     }
 
-    const alert = await this.alertController.create({
-      header: this.getNotifyAlertHeader(item),
-      message: this.getNotifyAlertMessage(),
-      inputs: [
-        {
-          name: 'telefono',
-          type: 'tel',
-          placeholder: '34600111222',
-        },
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: this.getNotifyAlertButtonText(item),
-          handler: (data) => {
-            const telefono = data?.telefono ?? '';
-            if (this.notifyAutoEnabled) {
-              void this.enviarNotificacionTwilio(pendingId, telefono, item);
-              return true;
-            }
-            const normalized = this.normalizarTelefonoWhatsApp(telefono);
-            if (!normalized) {
-              void this.mostrarAlerta(
-                'Teléfono no válido',
-                'Introduce un número con prefijo internacional (ej. 34 para España).'
-              );
-              return false;
-            }
-            this.abrirWhatsApp(normalized, this.buildMensajeWhatsAppVenta(item));
-            return true;
-          },
-        },
-      ],
-    });
-    await alert.present();
+    await this.enviarNotificacionTwilio(pendingId, undefined, item);
   }
 
   private async mostrarAlerta(header: string, message: string): Promise<void> {
@@ -692,10 +696,11 @@ export class HistorialPage implements OnInit, OnDestroy {
   getDescripcion(item: any): string {
     if (item.descripcion) return item.descripcion;
     const entidad = item.participacion?.entidad || item.entidad;
+    const contacto =
+      item.masked_buyer_contact || item.participacion?.clienteContactoEnmascarado;
     if (item.tipo === 'venta-digital' && this.esVentaDigitalPendiente(item)) {
-      const email = item.participacion?.clienteEmail;
       const base = entidad ? `Venta digital ${entidad}` : 'Venta digital';
-      return email ? `${base} · ${email}` : `${base} · Pendiente de registro`;
+      return contacto ? `${base} · ${contacto}` : `${base} · Pendiente de registro`;
     }
     if (entidad) return `Participación ${entidad}`;
     return 'Participación';

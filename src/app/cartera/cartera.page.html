@@ -87,12 +87,13 @@
       </ion-button>
     </div>
 
-    <!-- Lista de participaciones -->
+    <!-- Lista de participaciones (cartera digital) -->
     <ion-spinner *ngIf="loading" name="crescent" class="loading-spinner"></ion-spinner>
     <div class="participaciones-list" *ngIf="!loading">
+      <h3 class="section-heading" *ngIf="participacionesCartera.length">Mi cartera</h3>
       <div 
         class="participacion-card" 
-        *ngFor="let participacion of participaciones">
+        *ngFor="let participacion of participacionesCartera">
         
         <div class="participacion-item" [class.regalada]="esAtenuada(participacion)" (click)="toggleDetalle(participacion)">
           <div class="participacion-image">
@@ -141,6 +142,12 @@
                 <span 
                   class="status-badge pendiente-regalo"
                   *ngIf="participacion.estado === 'pendiente_regalo'">Regalo pendiente</span>
+                <span
+                  class="status-badge premio-bloqueado"
+                  *ngIf="participacion.payment_blocked && participacion.premio > 0 && participacion.estado !== 'cobrada' && participacion.estado !== 'donada'">Premio bloqueado</span>
+                <span
+                  class="status-badge premio-disponible"
+                  *ngIf="participacion.cobrable && participacion.premio > 0">Cobro disponible</span>
               </div>
             </div>
             <ion-icon 
@@ -171,6 +178,30 @@
             <div class="detalle-row">
               <span class="detalle-label">Importe total:</span>
               <span class="detalle-value">€{{ (participacion.importeTotal ?? 0) | number:'1.2-2' }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.premio != null && participacion.premio > 0">
+              <span class="detalle-label">Premio:</span>
+              <span class="detalle-value">€{{ participacion.premio | number:'1.2-2' }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.payment_blocked && participacion.user_message">
+              <span class="detalle-label">Estado cobro:</span>
+              <span class="detalle-value detalle-message">{{ participacion.user_message }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.cobrable && participacion.user_message">
+              <span class="detalle-label">Cobro:</span>
+              <span class="detalle-value detalle-message">{{ participacion.user_message }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.presencial_contact?.formatted && !participacion.is_digital && participacion.premio > 0">
+              <span class="detalle-label">Cobro presencial:</span>
+              <span class="detalle-value detalle-message">{{ participacion.presencial_contact.formatted }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.storage_message">
+              <span class="detalle-label">Almacén:</span>
+              <span class="detalle-value detalle-message">{{ participacion.storage_message }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.presencial_orientative_prize">
+              <span class="detalle-label">Importe orientativo presencial:</span>
+              <span class="detalle-value">€{{ participacion.presencial_orientative_prize | number:'1.2-2' }}</span>
             </div>
             <div class="detalle-row">
               <span class="detalle-label">Nº:</span>
@@ -217,7 +248,45 @@
         </div>
       </div>
 
-      <div class="empty-state" *ngIf="participaciones.length === 0">
+      <h3 class="section-heading almacen-heading" *ngIf="participacionesAlmacen.length">Almacén</h3>
+      <p class="section-subheading" *ngIf="participacionesAlmacen.length">Solo consulta. Para cobrar, acude a la entidad con el papel o digitaliza la participación.</p>
+      <div
+        class="participacion-card almacen-card"
+        *ngFor="let participacion of participacionesAlmacen">
+        <div class="participacion-item" (click)="toggleDetalle(participacion)">
+          <div class="participacion-image">
+            <img
+              *ngIf="participacion.snapshot_path"
+              [src]="getImageUrl(participacion.snapshot_path)"
+              [alt]="participacion.entidad || 'Participación'">
+          </div>
+          <div class="participacion-info">
+            <div class="participacion-header">
+              <span class="entidad">{{ participacion.entidad || 'Entidad' }}</span>
+              <span class="status-badge storage-badge">Almacén</span>
+            </div>
+          </div>
+          <div class="participacion-right">
+            <span class="importe premio" *ngIf="participacion.premio != null && participacion.premio > 0">€{{ participacion.premio | number:'1.2-2' }}</span>
+            <ion-icon [name]="estaExpandida(participacion) ? 'chevron-down-outline' : 'chevron-forward-outline'" class="chevron-icon"></ion-icon>
+          </div>
+        </div>
+        <div class="participacion-detalle" *ngIf="estaExpandida(participacion)">
+          <div class="detalle-box">
+            <p class="storage-info-text">{{ participacion.storage_message }}</p>
+            <div class="detalle-row" *ngIf="participacion.premio != null && participacion.premio > 0">
+              <span class="detalle-label">Premio orientativo:</span>
+              <span class="detalle-value">€{{ participacion.premio | number:'1.2-2' }}</span>
+            </div>
+            <div class="detalle-row" *ngIf="participacion.presencial_contact?.formatted && participacion.premio > 0">
+              <span class="detalle-label">Cobro presencial:</span>
+              <span class="detalle-value detalle-message">{{ participacion.presencial_contact.formatted }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="participacionesCartera.length === 0 && participacionesAlmacen.length === 0">
         <ion-icon name="wallet-outline"></ion-icon>
         <p>No tienes participaciones aún</p>
         <ion-button fill="outline" (click)="agregarParticipacion()">

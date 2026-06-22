@@ -33,7 +33,7 @@
     <div class="paso-block" *ngIf="paso === 'elegir' && !loading">
       <h2 class="section-title">Digitalizar Participación</h2>
       <p class="section-subtitle">Escanea el QR o introduce solo el número de referencia</p>
-      <ion-button class="btn-block primary" expand="block" (click)="abrirEscaner()" [disabled]="mostrandoScanner">
+      <ion-button class="btn-block primary" expand="block" (click)="abrirEscaner()">
         <ion-icon name="qr-code-outline" slot="start"></ion-icon>
         Escanear código
       </ion-button>
@@ -104,13 +104,41 @@
 
       <p class="mensaje-ya-posees" *ngIf="status === 'already_mine'">Ya la posees en tu cartera.</p>
 
+      <div class="notice-box" *ngIf="canDigitalize">
+        <p class="notice-text">{{ digitalizationNotice }}</p>
+        <label class="notice-check">
+          <input type="checkbox" [(ngModel)]="confirmDigitalizeChecked">
+          Entiendo que la digitalización es irreversible.
+        </label>
+      </div>
+
       <ion-button
         class="btn-digitalizar"
         expand="block"
-        *ngIf="status === 'can_link'"
+        *ngIf="canDigitalize"
+        [disabled]="!confirmDigitalizeChecked"
         (click)="confirmarDigitalizar()">
         Digitalizar
       </ion-button>
+
+      <div class="notice-box storage-box" *ngIf="canStoreInWarehouse">
+        <p class="notice-text">{{ storageNotice }}</p>
+        <label class="notice-check">
+          <input type="checkbox" [(ngModel)]="confirmStorageChecked">
+          Entiendo que no se digitaliza y solo podré consultar el premio.
+        </label>
+      </div>
+
+      <ion-button
+        class="btn-almacen"
+        expand="block"
+        fill="outline"
+        *ngIf="canStoreInWarehouse"
+        [disabled]="!confirmStorageChecked"
+        (click)="confirmarAlmacen()">
+        Guardar en almacén
+      </ion-button>
+
       <ion-button class="btn-block outline" expand="block" (click)="volver()">
         Volver
       </ion-button>

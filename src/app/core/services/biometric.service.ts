@@ -118,6 +118,20 @@ export class BiometricService {
    * Ejecuta el escáner nativo incrementando el contador **antes** de cualquier `await`
    * (si no, `appStateChange` puede dispararse durante el `import()` y aún invalidar biometría).
    */
+  /** Mensaje estándar cuando el usuario cierra el lector nativo sin leer. */
+  readonly scanCancelMessage = 'Lectura cancelada';
+
+  /** True si el error proviene de cancelar el escáner (no es fallo técnico). */
+  isScanCancelled(error: unknown): boolean {
+    const msg = String(
+      (error as { message?: string; errorMessage?: string })?.message
+        ?? (error as { errorMessage?: string })?.errorMessage
+        ?? error
+        ?? ''
+    ).toLowerCase();
+    return /cancel|canceled|cancelled|user\s+cancel|scan cancelled|operation cancelled|aborted/.test(msg);
+  }
+
   scanBarcodeWithoutBiometricPause(
     options: CapacitorBarcodeScannerOptions
   ): Promise<CapacitorBarcodeScannerScanResult> {

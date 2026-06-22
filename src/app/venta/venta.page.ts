@@ -56,23 +56,28 @@ export class VentaPage implements OnInit {
   // Modal de éxito
   mostrarModalExito: boolean = false;
   ultimaVentaConEmail = false;
-  ultimaVentaSinEmail = false;
   ultimaVentaPendingId: number | null = null;
   ultimaVentaRegistrationUrl: string | null = null;
-  telefonoCompradorWhatsApp = '';
   notifyAutoEnabled = false;
   buyerNotifyChannel: 'sms' | 'manual' = 'manual';
   enviandoNotificacion = false;
   notificacionEnviada = false;
 
-  // Modal email (para venta digital)
-  mostrarModalEmail: boolean = false;
+  // Modal contacto comprador (venta digital)
+  mostrarModalContacto = false;
+  canalContactoDigital: 'email' | 'telefono' = 'email';
+  mostrarModalConfirmacionContacto = false;
   emailCliente: string = '';
+  telefonoCliente = '';
   clienteEncontrado: { id: number; email: string } | null = null;
   /** Venta digital a email no registrado: cobro ahora, registro por correo después. */
   ventaPendienteRegistro = false;
-  /** Venta digital pendiente sin email del comprador. */
-  ventaSoloCodigo = false;
+
+  // Modal de éxito — venta digital
+  ultimaVentaCanal: 'email' | 'sms' | 'whatsapp' | null = null;
+  ultimaVentaMaskedContact = '';
+  /** Solo en sesión para abrir WhatsApp manual (no se muestra completo al vendedor). */
+  ultimaVentaBuyerPhoneSesion = '';
 
   loading = false;
 
@@ -609,29 +614,82 @@ export class VentaPage implements OnInit {
     this.formaPago = null;
     if (this.tipoParticipacion === 'digitales') {
       this.emailCliente = '';
+      this.telefonoCliente = '';
       this.clienteEncontrado = null;
       this.ventaPendienteRegistro = false;
-      this.ventaSoloCodigo = false;
-      this.mostrarModalEmail = true;
+      this.canalContactoDigital = 'email';
+      this.mostrarModalContacto = true;
     } else {
       this.mostrarModalResumen = true;
     }
   }
 
-  cerrarModalEmail() {
-    this.mostrarModalEmail = false;
+  cerrarModalContacto() {
+    this.mostrarModalContacto = false;
     this.emailCliente = '';
+    this.telefonoCliente = '';
     this.clienteEncontrado = null;
-    this.ventaSoloCodigo = false;
+    this.ventaPendienteRegistro = false;
   }
 
-  continuarConSoloCodigo() {
-    this.clienteEncontrado = null;
-    this.emailCliente = '';
-    this.ventaPendienteRegistro = true;
-    this.ventaSoloCodigo = true;
-    this.mostrarModalEmail = false;
+  seleccionarCanalContacto(canal: 'email' | 'telefono') {
+    this.canalContactoDigital = canal;
+    if (canal === 'email') {
+      this.telefonoCliente = '';
+    } else {
+      this.emailCliente = '';
+      this.clienteEncontrado = null;
+      this.ventaPendienteRegistro = false;
+    }
+  }
+
+  get contactoConfirmacionDisplay(): string {
+    if (this.canalContactoDigital === 'telefono') {
+      return (this.telefonoCliente || '').trim();
+    }
+    return (this.clienteEncontrado?.email || this.emailCliente || '').trim().toLowerCase();
+  }
+
+  async continuarContactoDigital() {
+    if (this.canalContactoDigital === 'telefono') {
+      const tel = (this.telefonoCliente || '').trim();
+      if (!tel) {
+        await this.mostrarAlerta('Atención', 'Introduce el teléfono del comprador.');
+        return;
+      }
+      if (!this.normalizarTelefonoWhatsApp(tel)) {
+        await this.mostrarAlerta(
+          'Teléfono no válido',
+          'Introduce un número con prefijo internacional (ej. 34600111222).'
+        );
+        return;
+      }
+      this.ventaPendienteRegistro = true;
+      this.clienteEncontrado = null;
+      this.mostrarModalContacto = false;
+      this.mostrarModalConfirmacionContacto = true;
+      return;
+    }
+
+    await this.verificarEmailYContinuar();
+  }
+
+  cerrarModalConfirmacionContacto() {
+    this.mostrarModalConfirmacionContacto = false;
+  }
+
+  cambiarContactoDigital() {
+    this.mostrarModalConfirmacionContacto = false;
+    this.mostrarModalContacto = true;
+  }
+
+  aceptarConfirmacionContacto() {
+    this.mostrarModalConfirmacionContacto = false;
     this.mostrarModalResumen = true;
+  }
+
+  cerrarModalEmail() {
+    this.cerrarModalContacto();
   }
 
   async verificarEmailYContinuar() {
@@ -647,8 +705,8 @@ export class VentaPage implements OnInit {
         if (res.exists && res.user_id) {
           this.clienteEncontrado = { id: res.user_id, email };
           this.ventaPendienteRegistro = false;
-          this.mostrarModalEmail = false;
-          this.mostrarModalResumen = true;
+          this.mostrarModalContacto = false;
+          this.mostrarModalConfirmacionContacto = true;
         } else if (res.can_offer_registration) {
           await this.ofrecerVentaConRegistroPorEmail(email);
         } else {
@@ -679,8 +737,8 @@ export class VentaPage implements OnInit {
             this.clienteEncontrado = null;
             this.ventaPendienteRegistro = true;
             this.emailCliente = email;
-            this.mostrarModalEmail = false;
-            this.mostrarModalResumen = true;
+            this.mostrarModalContacto = false;
+            this.mostrarModalConfirmacionContacto = true;
           },
         },
       ],
@@ -691,7 +749,10 @@ export class VentaPage implements OnInit {
   cerrarModalResumen() {
     this.mostrarModalResumen = false;
     this.ventaPendienteRegistro = false;
-    this.ventaSoloCodigo = false;
+  }
+
+  private resolveNotifyChannelForPhone(): 'sms' | 'whatsapp' {
+    return this.notifyAutoEnabled ? 'sms' : 'whatsapp';
   }
 
   seleccionarFormaPago(forma: 'efectivo' | 'bizum' | 'transferencia' | 'omitir') {
@@ -717,16 +778,22 @@ export class VentaPage implements OnInit {
         return;
       }
       const buyerEmail = (this.clienteEncontrado?.email || this.emailCliente || '').trim().toLowerCase();
-      if (!this.ventaSoloCodigo) {
-        if (!buyerEmail) {
-          await this.mostrarAlerta('Error', 'Datos incompletos. Verifica el email del cliente.');
+      const buyerPhone = (this.telefonoCliente || '').trim();
+      const esTelefono = this.canalContactoDigital === 'telefono';
+
+      if (esTelefono) {
+        if (!buyerPhone) {
+          await this.mostrarAlerta('Error', 'Introduce el teléfono del comprador.');
           return;
         }
-        if (!this.clienteEncontrado && !this.ventaPendienteRegistro) {
-          await this.mostrarAlerta('Error', 'Confirma el email del cliente antes de continuar.');
-          return;
-        }
+      } else if (!buyerEmail) {
+        await this.mostrarAlerta('Error', 'Introduce el email del comprador.');
+        return;
+      } else if (!this.clienteEncontrado && !this.ventaPendienteRegistro) {
+        await this.mostrarAlerta('Error', 'Confirma el email del cliente antes de continuar.');
+        return;
       }
+
       this.loading = true;
       const paymentMethod = this.formaPago === 'omitir' ? null : this.formaPago;
       const digitalBase = {
@@ -734,31 +801,57 @@ export class VentaPage implements OnInit {
         quantity: this.numeroParticipaciones,
         payment_method: paymentMethod,
       };
-      const sale$ = this.ventaPendienteRegistro
+
+      const sale$ = this.ventaPendienteRegistro || esTelefono
         ? this.ventasService.sellDigitalPending(
-            this.ventaSoloCodigo ? digitalBase : { ...digitalBase, buyer_email: buyerEmail }
+            esTelefono
+              ? {
+                  ...digitalBase,
+                  buyer_phone: buyerPhone,
+                  notify_channel: this.resolveNotifyChannelForPhone(),
+                }
+              : { ...digitalBase, buyer_email: buyerEmail, notify_channel: 'email' }
           )
         : this.ventasService.sellDigital({ ...digitalBase, buyer_email: buyerEmail });
       sale$.subscribe({
         next: async (res: any) => {
           this.loading = false;
           if (res.success) {
-            const soloCodigo = this.ventaSoloCodigo;
-            this.ultimaVentaConEmail = !soloCodigo && !!buyerEmail;
-            this.ultimaVentaSinEmail = soloCodigo;
-            this.ultimaVentaPendingId = soloCodigo ? (res.pending_id ?? null) : null;
-            this.ultimaVentaRegistrationUrl = soloCodigo
+            const esPendiente = this.ventaPendienteRegistro || esTelefono;
+            this.ultimaVentaConEmail = !esTelefono && !!buyerEmail && !esPendiente;
+            this.ultimaVentaCanal = esTelefono
+              ? (res.notify_channel || this.resolveNotifyChannelForPhone())
+              : esPendiente
+                ? 'email'
+                : null;
+            this.ultimaVentaMaskedContact =
+              res.masked_buyer_contact || this.contactoConfirmacionDisplay;
+            this.ultimaVentaBuyerPhoneSesion = esTelefono ? buyerPhone : '';
+            this.ultimaVentaPendingId = esPendiente ? (res.pending_id ?? null) : null;
+            this.ultimaVentaRegistrationUrl = esPendiente
               ? (res.buyer_registration_url ?? null)
               : null;
-            this.telefonoCompradorWhatsApp = '';
-            this.notificacionEnviada = false;
+            this.notificacionEnviada = !!res.initial_notify_sent;
             this.ventasService.notifyVentasChanged();
             this.cerrarModalResumen();
             this.mostrarModalExito = true;
             this.clienteEncontrado = null;
             this.emailCliente = '';
+            this.telefonoCliente = '';
             this.ventaPendienteRegistro = false;
-            this.ventaSoloCodigo = false;
+
+            if (
+              esTelefono &&
+              this.ultimaVentaCanal === 'whatsapp' &&
+              !this.notificacionEnviada &&
+              this.ultimaVentaBuyerPhoneSesion
+            ) {
+              const normalized = this.normalizarTelefonoWhatsApp(this.ultimaVentaBuyerPhoneSesion);
+              if (normalized) {
+                this.abrirWhatsAppManual(normalized, this.buildMensajeWhatsAppSinCodigo());
+              }
+            }
+
             this.refreshSetsAvailabilityAfterSale();
           } else {
             await this.mostrarAlerta('Error', res.message || 'No se pudo registrar la venta.');
@@ -844,13 +937,10 @@ export class VentaPage implements OnInit {
       tipo: 'venta-digital',
       fecha: new Date().toISOString(),
       formaPago: this.formaPago === 'omitir' ? null : this.formaPago,
-      descripcion: this.ventaSoloCodigo
-        ? `Venta digital ${entidad} · Sin email`
-        : this.ventaPendienteRegistro
-          ? `Venta digital ${entidad} · Pendiente de registro`
-          : `Venta digital ${entidad}`,
-      pendienteRegistro: this.ventaPendienteRegistro || this.ventaSoloCodigo,
-      soloCodigo: this.ventaSoloCodigo,
+      descripcion: this.ventaPendienteRegistro
+        ? `Venta digital ${entidad} · Pendiente de registro`
+        : `Venta digital ${entidad}`,
+      pendienteRegistro: this.ventaPendienteRegistro,
       quantity: this.numeroParticipaciones,
       valid_until: res.valid_until ?? null,
       buyer_registration_url: res.buyer_registration_url ?? null,
@@ -863,7 +953,7 @@ export class VentaPage implements OnInit {
         importeJugado: this.precioPorParticipacion,
         importeTotal: this.importeTotal,
         clienteEmail: buyerEmail || this.clienteEncontrado?.email,
-        pendienteRegistro: this.ventaPendienteRegistro || this.ventaSoloCodigo,
+        pendienteRegistro: this.ventaPendienteRegistro,
         esDigital: true,
         setLabel: this.getSetLabelParaHistorial(),
         set_number: this.setSeleccionado?.set_number ?? null,
@@ -975,34 +1065,42 @@ export class VentaPage implements OnInit {
     return this.notificacionEnviada ? 'Reenviar mensaje' : 'Enviar mensaje';
   }
 
+  get puedeReenviarMensajeExito(): boolean {
+    return (
+      !!this.ultimaVentaPendingId &&
+      (this.ultimaVentaCanal === 'sms' || this.ultimaVentaCanal === 'whatsapp')
+    );
+  }
+
+  get puedeReenviarEmailExito(): boolean {
+    return !!this.ultimaVentaPendingId && this.ultimaVentaCanal === 'email';
+  }
+
   async enviarNotificacionComprador(): Promise<void> {
-    if (!this.ultimaVentaSinEmail || !this.ultimaVentaPendingId || this.enviandoNotificacion) {
+    if (!this.ultimaVentaPendingId || this.enviandoNotificacion) {
       return;
     }
 
-    const telefonoRaw = this.telefonoCompradorWhatsApp.trim();
-    if (!telefonoRaw) {
-      await this.mostrarAlerta('Atención', 'Introduce el teléfono del comprador.');
-      return;
-    }
-
-    if (!this.notifyAutoEnabled) {
-      const normalized = this.normalizarTelefonoWhatsApp(telefonoRaw);
+    if (this.ultimaVentaCanal === 'whatsapp') {
+      const normalized = this.normalizarTelefonoWhatsApp(this.ultimaVentaBuyerPhoneSesion);
       if (!normalized) {
-        await this.mostrarAlerta(
-          'Teléfono no válido',
-          'Introduce un número con prefijo internacional (ej. 34 para España).'
-        );
+        await this.mostrarAlerta('Error', 'No se puede abrir WhatsApp sin el teléfono de la venta.');
         return;
       }
       this.abrirWhatsAppManual(normalized, this.buildMensajeWhatsAppSinCodigo());
       return;
     }
 
+    if (!this.notifyAutoEnabled) {
+      await this.mostrarAlerta(
+        'SMS no disponible',
+        'El envío automático por SMS no está configurado en el servidor.'
+      );
+      return;
+    }
+
     this.enviandoNotificacion = true;
-    this.ventasService
-      .sendPendingDigitalNotify(this.ultimaVentaPendingId, telefonoRaw)
-      .subscribe({
+    this.ventasService.sendPendingDigitalNotify(this.ultimaVentaPendingId).subscribe({
         next: async (res) => {
           this.enviandoNotificacion = false;
           if (res.success) {
@@ -1029,13 +1127,36 @@ export class VentaPage implements OnInit {
       });
   }
 
+  async reenviarEmailComprador(): Promise<void> {
+    if (!this.ultimaVentaPendingId || this.enviandoNotificacion) {
+      return;
+    }
+    this.enviandoNotificacion = true;
+    this.ventasService.resendPendingDigitalEmail(this.ultimaVentaPendingId).subscribe({
+      next: async (res) => {
+        this.enviandoNotificacion = false;
+        if (res.success) {
+          this.notificacionEnviada = true;
+          await this.mostrarAlerta('Correo reenviado', res.message || 'Correo reenviado al comprador.');
+          return;
+        }
+        await this.mostrarAlerta('Error', res.message || 'No se pudo reenviar el correo.');
+      },
+      error: async (err) => {
+        this.enviandoNotificacion = false;
+        await this.mostrarAlerta('Error', err?.error?.message || 'Error al reenviar el correo.');
+      },
+    });
+  }
+
   cerrarModalExito() {
     this.mostrarModalExito = false;
     this.ultimaVentaConEmail = false;
-    this.ultimaVentaSinEmail = false;
+    this.ultimaVentaCanal = null;
+    this.ultimaVentaMaskedContact = '';
+    this.ultimaVentaBuyerPhoneSesion = '';
     this.ultimaVentaPendingId = null;
     this.ultimaVentaRegistrationUrl = null;
-    this.telefonoCompradorWhatsApp = '';
     this.notificacionEnviada = false;
     this.enviandoNotificacion = false;
     this.participacionUnidad = '';

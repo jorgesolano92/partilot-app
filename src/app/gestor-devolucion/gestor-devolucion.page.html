@@ -441,6 +441,55 @@
   </div>
 </div>
 
+<!-- Modal: modalidad de pago de premios -->
+<div class="modal-overlay modal-centered-overlay" *ngIf="showPaymentModeModal" (click)="closePaymentModeModal()">
+  <div class="modal-centered-box modal-payment-mode" (click)="$event.stopPropagation()">
+    <h2 class="modal-payment-mode-title">Modalidad de pago de premios</h2>
+    <p class="modal-payment-mode-text">
+      Selecciona cómo se gestionarán los premios tras el escrutinio. Esta elección no podrá modificarse por la entidad.
+    </p>
+
+    <button
+      type="button"
+      class="payment-mode-option"
+      [class.selected]="prizePaymentMode === 'presencial'"
+      (click)="selectPrizePaymentMode('presencial')">
+      <strong>Opción A — Pago presencial</strong>
+      <span>La entidad paga en sus instalaciones desde la app gestor.</span>
+    </button>
+
+    <button
+      type="button"
+      class="payment-mode-option"
+      [class.selected]="prizePaymentMode === 'online' && onlinePayer === 'partilot'"
+      (click)="selectPrizePaymentMode('online', 'partilot')">
+      <strong>Opción B — Pago online (PARTILOT)</strong>
+      <span>PARTILOT gestiona la remesa tras ingreso de fondos, contrato y activación.</span>
+    </button>
+
+    <button
+      type="button"
+      class="payment-mode-option"
+      [class.selected]="prizePaymentMode === 'online' && onlinePayer === 'entity'"
+      (click)="selectPrizePaymentMode('online', 'entity')">
+      <strong>Opción C — Pago online (entidad)</strong>
+      <span>La entidad gestiona sus remesas. Los usuarios cobran online tras el escrutinio.</span>
+    </button>
+
+    <label class="payment-mode-confirm">
+      <input type="checkbox" [(ngModel)]="prizePaymentModeConfirmed">
+      Confirmo la modalidad seleccionada.
+    </label>
+
+    <div class="payment-mode-actions">
+      <ion-button fill="outline" (click)="closePaymentModeModal()">Cancelar</ion-button>
+      <ion-button color="warning" [disabled]="!canConfirmPrizePaymentMode() || procesando" (click)="confirmarModalidadPago()">
+        Aceptar y liquidar
+      </ion-button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: ¡Liquidación Registrada! -->
 <div class="modal-overlay modal-centered-overlay" *ngIf="showLiquidationSuccessModal" (click)="closeLiquidationSuccessModal()">
   <div class="modal-centered-box modal-liquidacion-success" (click)="$event.stopPropagation()">

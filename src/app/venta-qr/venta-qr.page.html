@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button *ngIf="!mostrandoScanner"></ion-back-button>
+      <ion-back-button></ion-back-button>
     </ion-buttons>
     <ion-title></ion-title>
     <div class="header-content">
@@ -12,30 +12,14 @@
         <ion-icon name="notifications-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-menu-button menu="main-menu" slot="end" *ngIf="!mostrandoScanner"></ion-menu-button>
+    <ion-menu-button menu="main-menu" slot="end"></ion-menu-button>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="venta-qr-content">
-  
-  <!-- Vista de Escáner -->
-  <div *ngIf="mostrandoScanner" class="scanner-fullscreen">
-    <div class="scanner-overlay">
-      <div class="scanner-frame-overlay">
-        <div class="corner top-left"></div>
-        <div class="corner top-right"></div>
-        <div class="corner bottom-left"></div>
-        <div class="corner bottom-right"></div>
-      </div>
-      <div class="scanner-text">Escanear código</div>
-      <ion-button fill="clear" class="cancel-scanner" (click)="cancelarScanner()">
-        <ion-icon name="close-circle"></ion-icon>
-      </ion-button>
-    </div>
-  </div>
 
   <!-- Vista Principal de Venta QR -->
-  <div *ngIf="!mostrandoScanner" class="venta-qr-container">
+  <div class="venta-qr-container">
     
     <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->
     <div class="rol-selector" *ngIf="authService.canCliente() || authService.canSeller() || authService.canManager()">

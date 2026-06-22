@@ -99,9 +99,20 @@
     background: #F5F6F7;
     border-radius: 12px;
     padding: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
     
     .modo-button {
-      flex: 1;
+      flex: 0 0 auto;
+      min-width: max-content;
       --color: #6c757d;
       --border-radius: 8px;
       margin: 0;

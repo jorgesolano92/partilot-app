@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { CarteraService } from '../core/services/cartera.service';
 import { BiometricService } from '../core/services/biometric.service';
 import { environment } from '../../environments/environment';
@@ -16,16 +17,21 @@ export class DigitalizarParticipacionPage implements OnInit {
   paso: 'elegir' | 'escanear' | 'manual' | 'detalle' = 'elegir';
   referenciaManual = '';
   participacion: any = null;
+  walletOptions: any = null;
+  digitalizationNotice = '';
+  storageNotice = '';
+  confirmDigitalizeChecked = false;
+  confirmStorageChecked = false;
   status: 'can_link' | 'already_mine' | 'already_other' | 'not_found' | null = null;
   mensajeError = '';
-  mostrandoScanner = false;
   loading = false;
 
   constructor(
     private alertModal: AlertModalService,
     private router: Router,
     private carteraService: CarteraService,
-    private biometricService: BiometricService
+    private biometricService: BiometricService,
+    private alertController: AlertController
   ) { }
 
   ngOnInit() {}
@@ -39,7 +45,6 @@ export class DigitalizarParticipacionPage implements OnInit {
   }
 
   async abrirEscaner() {
-    this.mostrandoScanner = true;
     try {
       const { CapacitorBarcodeScannerTypeHint } = await import('@capacitor/barcode-scanner');
       const result = await this.biometricService.scanBarcodeWithoutBiometricPause({
@@ -51,12 +56,12 @@ export class DigitalizarParticipacionPage implements OnInit {
       if (ref) {
         await this.consultarReferencia(ref);
       }
-    } catch (err: any) {
-      if (err?.message && !err.message.includes('User canceled')) {
-        await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
+    } catch (err: unknown) {
+      if (this.biometricService.isScanCancelled(err)) {
+        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
+        return;
       }
-    } finally {
-      this.mostrandoScanner = false;
+      await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     }
   }
 
@@ -84,6 +89,9 @@ export class DigitalizarParticipacionPage implements OnInit {
       next: async (res: any) => {
         this.loading = false;
         this.participacion = res.participation || null;
+        this.walletOptions = res.wallet_options || null;
+        this.digitalizationNotice = res.digitalization_notice || '';
+        this.storageNotice = res.storage_notice || '';
         this.status = res.status || null;
         this.mensajeError = res.message || '';
         this.paso = 'detalle';
@@ -109,14 +117,20 @@ export class DigitalizarParticipacionPage implements OnInit {
   }
 
   async confirmarDigitalizar() {
-    if (!this.participacion?.referencia || this.status !== 'can_link') return;
+    if (!this.participacion?.referencia || this.status !== 'can_link' || !this.confirmDigitalizeChecked) return;
+
+    const ok = await this.mostrarConfirmacion(
+      'Confirmar digitalización',
+      `${this.digitalizationNotice}\n\n¿Quieres digitalizar esta participación?`
+    );
+    if (!ok) return;
+
     this.loading = true;
     this.carteraService.linkToWallet(this.participacion.referencia).subscribe({
       next: async () => {
         this.loading = false;
-        // Notificar a la cartera para que recargue las participaciones
         this.carteraService.notifyParticipacionesChanged();
-        await this.mostrarAlerta('Listo', 'Participación añadida a tu cartera.');
+        await this.mostrarAlerta('Listo', 'Participación digitalizada y añadida a tu cartera.');
         this.router.navigate(['/tabs/tab1']);
       },
       error: async (err) => {
@@ -124,6 +138,38 @@ export class DigitalizarParticipacionPage implements OnInit {
         await this.mostrarAlerta('Error', err.error?.message || 'No se pudo añadir.');
       }
     });
+  }
+
+  async confirmarAlmacen() {
+    if (!this.participacion?.referencia || this.status !== 'can_link' || !this.confirmStorageChecked) return;
+
+    const ok = await this.mostrarConfirmacion(
+      'Guardar en almacén',
+      `${this.storageNotice}\n\n¿Quieres guardarla en almacén?`
+    );
+    if (!ok) return;
+
+    this.loading = true;
+    this.carteraService.storeInWarehouse(this.participacion.referencia).subscribe({
+      next: async () => {
+        this.loading = false;
+        this.carteraService.notifyParticipacionesChanged();
+        await this.mostrarAlerta('Listo', 'Participación guardada en almacén.');
+        this.router.navigate(['/tabs/tab1']);
+      },
+      error: async (err) => {
+        this.loading = false;
+        await this.mostrarAlerta('Error', err.error?.message || 'No se pudo guardar.');
+      }
+    });
+  }
+
+  get canDigitalize(): boolean {
+    return this.status === 'can_link' && !!this.walletOptions?.can_digitalize;
+  }
+
+  get canStoreInWarehouse(): boolean {
+    return this.status === 'can_link' && !!this.walletOptions?.can_store_in_warehouse;
   }
 
   volver() {
@@ -145,6 +191,20 @@ export class DigitalizarParticipacionPage implements OnInit {
 
   async mostrarAlerta(header: string, message: string) {
     await this.alertModal.show(header, message);
+  }
+
+  async mostrarConfirmacion(header: string, message: string): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      const alert = await this.alertController.create({
+        header,
+        message,
+        buttons: [
+          { text: 'Cancelar', role: 'cancel', handler: () => resolve(false) },
+          { text: 'Confirmar', handler: () => resolve(true) },
+        ],
+      });
+      await alert.present();
+    });
   }
 
   /**

@@ -14,7 +14,6 @@ import { BiometricService } from '../core/services/biometric.service';
 })
 export class VentaQRPage implements OnInit {
 
-  mostrandoScanner: boolean = false;
   participaciones: any[] = [];
   referenciaEscaneada: string | null = null;
   
@@ -109,7 +108,6 @@ export class VentaQRPage implements OnInit {
   }
 
   async iniciarScanner() {
-    this.mostrandoScanner = true;
     try {
       const { CapacitorBarcodeScannerTypeHint } = await import('@capacitor/barcode-scanner');
       const scanText = this.modoVenta === 'rango' 
@@ -126,9 +124,11 @@ export class VentaQRPage implements OnInit {
       }
     } catch (err) {
       console.error('Error escáner QR:', err);
-      await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner. Ejecuta npx cap sync.');
-    } finally {
-      this.mostrandoScanner = false;
+      if (this.biometricService.isScanCancelled(err)) {
+        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
+        return;
+      }
+      await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     }
   }
 
@@ -317,10 +317,6 @@ export class VentaQRPage implements OnInit {
         await this.mostrarAlerta('Error', err.error?.message || 'Error al procesar la venta del rango.');
       }
     });
-  }
-
-  cancelarScanner() {
-    this.mostrandoScanner = false;
   }
 
   guardarVentaDigitalEnHistorial(res: any, referencia: string, formaPagoUsada?: string | null): void {

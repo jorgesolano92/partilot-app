@@ -261,6 +261,16 @@
       background-color: #FFF3CD;
       color: #856404;
     }
+
+    &.premio-bloqueado {
+      background-color: #FFF3CD;
+      color: #856404;
+    }
+
+    &.premio-disponible {
+      background-color: #D1ECF1;
+      color: #0C5460;
+    }
   }
 
   .status-badge-row {
@@ -349,6 +359,14 @@
   .detalle-value {
     color: #212529;
     font-weight: 500;
+
+    &.detalle-message {
+      text-align: right;
+      max-width: 65%;
+      font-weight: 400;
+      font-size: 13px;
+      line-height: 1.35;
+    }
   }
 }
 

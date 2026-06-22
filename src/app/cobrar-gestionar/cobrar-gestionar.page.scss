@@ -89,6 +89,55 @@
   }
 }
 
+.blocked-prizes-section {
+  margin-bottom: 24px;
+
+  .blocked-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #212529;
+    margin: 0 0 12px 0;
+  }
+
+  .blocked-prize-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #ffc107;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .blocked-prize-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+
+    strong {
+      font-size: 15px;
+      color: #212529;
+    }
+  }
+
+  .blocked-amount {
+    font-weight: 600;
+    color: #856404;
+  }
+
+  .blocked-message {
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.5;
+    margin: 0 0 8px 0;
+  }
+
+  .blocked-sorteo {
+    color: #adb5bd;
+    font-size: 12px;
+  }
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

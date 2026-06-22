@@ -60,26 +60,21 @@
     </div>
   </div>
   
-  <!-- Vista de escáner -->
-  <div class="scanner-view" *ngIf="modoEscaneo && !mostrarInfoDigitalizacion && !ventaPendienteVendedor && !ventaPendienteTaco">
-    <div class="escaner-container">
-      <div class="scanner-area">
-        <div class="scanner-frame">
-          <div class="corner top-left"></div>
-          <div class="corner top-right"></div>
-          <div class="corner bottom-left"></div>
-          <div class="corner bottom-right"></div>
-        </div>
-        <p class="scanner-instructions">Apunta la cámara al código QR</p>
-      </div>
-      
-      <div class="actions-container">
-        <ion-button class="figma-button" expand="block" (click)="scanQR()">
-          <ion-icon name="qr-code" slot="start"></ion-icon>
-          Escanear QR
-        </ion-button>
-      </div>
+  <!-- Espera / reintento tras cancelar o error (sin vista falsa de cámara) -->
+  <div class="scan-idle-view" *ngIf="modoEscaneo && !escaneando && !mostrarInfoDigitalizacion && !ventaPendienteVendedor && !ventaPendienteTaco">
+    <div class="scan-idle-card">
+      <ion-icon name="qr-code-outline" class="scan-idle-icon"></ion-icon>
+      <p class="scan-idle-text">Escanea el código QR de la participación</p>
+      <ion-button class="figma-button" expand="block" (click)="scanQR()">
+        <ion-icon name="qr-code" slot="start"></ion-icon>
+        Escanear QR
+      </ion-button>
     </div>
+  </div>
+
+  <div class="scan-loading-view" *ngIf="escaneando">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Abriendo cámara...</p>
   </div>
 
   <!-- Vista Venta por taco (Modo Vendedor): QR portada → rangos disponibles → modal pago → vender -->

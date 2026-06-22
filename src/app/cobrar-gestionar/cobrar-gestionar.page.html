@@ -54,7 +54,7 @@
     </div>
 
     <!-- Mensaje cuando no hay participaciones -->
-    <div class="empty-state" *ngIf="(modoCobro || modoDonacion) && !loading && participaciones.length === 0">
+    <div class="empty-state" *ngIf="(modoCobro || modoDonacion) && !loading && participaciones.length === 0 && participacionesBloqueadas.length === 0">
       <ion-icon name="information-circle-outline" class="empty-icon"></ion-icon>
       <h3 class="empty-title">{{ modoCobro ? 'No hay participaciones que cobrar' : 'No hay participaciones para donar' }}</h3>
       <p class="empty-message">
@@ -69,12 +69,25 @@
       </p>
     </div>
 
+    <!-- Premios bloqueados (aún no activados por la entidad / PARTILOT) -->
+    <div class="blocked-prizes-section" *ngIf="modoCobro && !loading && participacionesBloqueadas.length > 0">
+      <h3 class="blocked-title">Premios pendientes de activación</h3>
+      <div class="blocked-prize-card" *ngFor="let p of participacionesBloqueadas">
+        <div class="blocked-prize-header">
+          <strong>{{ p.entidad }}</strong>
+          <span class="blocked-amount">€{{ (p.premio ?? 0) | number:'1.2-2' }}</span>
+        </div>
+        <p class="blocked-message">{{ p.user_message || 'El cobro aún no está habilitado para esta participación.' }}</p>
+        <small class="blocked-sorteo" *ngIf="p.sorteo">Sorteo: {{ p.sorteo }}</small>
+      </div>
+    </div>
+
     <!-- Lista de participaciones cobrables/donables -->
     <div class="participaciones-list" *ngIf="(modoCobro || modoDonacion) && !loading && participaciones.length > 0">
       <div 
         class="participacion-item" 
         [class.selected]="estaSeleccionada(participacion.id)"
-        [class.otra-entidad]="participacionesSeleccionadas.size > 0 && !puedeSeleccionarParticipacion(participacion)"
+        [class.otra-entidad]="modoDonacion && participacionesSeleccionadas.size > 0 && !puedeSeleccionarParticipacion(participacion)"
         *ngFor="let participacion of participaciones"
         (click)="toggleSeleccion(participacion, $event)">
         

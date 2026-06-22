@@ -17,6 +17,7 @@ import { environment } from '../../environments/environment';
 export class EscanerPage implements OnInit {
 
   modoEscaneo: boolean = true;
+  escaneando = false;
   ticketEscaneado: any = null;
   imagenTicket: string | null = null;
   
@@ -77,6 +78,22 @@ export class EscanerPage implements OnInit {
     this.detectarModoDesdeRuta();
   }
 
+  ionViewDidEnter() {
+    if (this.debeAutoEscanear()) {
+      void this.scanQR();
+    }
+  }
+
+  private debeAutoEscanear(): boolean {
+    return this.modoEscaneo
+      && !this.escaneando
+      && !this.loading
+      && !this.mostrarInfoDigitalizacion
+      && !this.ventaPendienteVendedor
+      && !this.ventaPendienteTaco
+      && !this.ticketEscaneado;
+  }
+
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
     if (rol === 'usuario') {
       this.router.navigate(['/tabs/tab5'], { replaceUrl: true });
@@ -115,8 +132,8 @@ export class EscanerPage implements OnInit {
   }
 
   async iniciarScannerVendedor() {
-    this.modoEscaneo = true;
-    let mostrarVistaEscaneo = false; // true = volver a mostrar escáner tras error/QR inválido
+    let mostrarVistaEscaneo = false;
+    this.escaneando = true;
     try {
       const { CapacitorBarcodeScannerTypeHint } = await import('@capacitor/barcode-scanner');
       const result = await this.biometricService.scanBarcodeWithoutBiometricPause({
@@ -129,25 +146,30 @@ export class EscanerPage implements OnInit {
       // Diferenciar: QR de taco (portada) vs QR de participación
       const tacoRef = this.extraerTacoRefDeQR(qrText);
       if (tacoRef) {
+        this.modoEscaneo = false;
         this.consultarTacoPorQr(tacoRef);
         return;
       }
       const referencia = this.extraerReferenciaDeQR(qrText);
       if (referencia) {
+        this.modoEscaneo = false;
         // Venta múltiple: acumular participaciones hasta pulsar "Vender"
         this.consultarYMostrarVentaIndividual(referencia);
       } else {
         mostrarVistaEscaneo = true;
         await this.mostrarAlerta('QR no reconocido', 'El código QR no corresponde a un taco ni a una participación válida.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error escáner QR:', err);
-      if (err.message && err.message.includes('User canceled')) {
+      if (this.biometricService.isScanCancelled(err)) {
+        mostrarVistaEscaneo = true;
+        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       mostrarVistaEscaneo = true;
       await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     } finally {
+      this.escaneando = false;
       this.modoEscaneo = mostrarVistaEscaneo;
     }
   }
@@ -455,8 +477,8 @@ export class EscanerPage implements OnInit {
   }
 
   async iniciarScannerUsuario() {
-    this.modoEscaneo = true;
     let mostrarVistaEscaneo = false;
+    this.escaneando = true;
     try {
       const { CapacitorBarcodeScannerTypeHint } = await import('@capacitor/barcode-scanner');
       const result = await this.biometricService.scanBarcodeWithoutBiometricPause({
@@ -466,19 +488,23 @@ export class EscanerPage implements OnInit {
       const qrText = result?.ScanResult?.trim() || null;
       const referencia = this.extraerReferenciaDeQR(qrText);
       if (referencia) {
+        this.modoEscaneo = false;
         this.consultarReferencia(referencia);
       } else if (qrText) {
         mostrarVistaEscaneo = true;
         await this.mostrarAlerta('QR no reconocido', 'El código QR no corresponde a una participación válida.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error escáner QR:', err);
-      if (err.message && err.message.includes('User canceled')) {
+      if (this.biometricService.isScanCancelled(err)) {
+        mostrarVistaEscaneo = true;
+        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       mostrarVistaEscaneo = true;
       await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     } finally {
+      this.escaneando = false;
       this.modoEscaneo = mostrarVistaEscaneo;
     }
   }
@@ -600,9 +626,9 @@ export class EscanerPage implements OnInit {
   }
 
   nuevaDigitalizacion() {
-    // Volver al escáner para agregar otra participación
     this.modoEscaneo = true;
     this.mostrarInfoDigitalizacion = false;
+    void this.scanQR();
   }
 
   calcularImporteTotal(): number {
@@ -722,12 +748,13 @@ export class EscanerPage implements OnInit {
   }
 
   volverAEscanear() {
-    this.modoEscaneo = true;
     this.ticketEscaneado = null;
     this.imagenTicket = null;
     this.participacion = null;
     this.status = null;
     this.mensajeError = '';
+    this.modoEscaneo = true;
+    void this.scanQR();
   }
 
   async mostrarAlerta(header: string, message: string) {

@@ -1080,3 +1080,64 @@
     font-size: 16px;
   }
 }
+
+.modal-centered-box.modal-payment-mode {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+
+  .modal-payment-mode-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 10px;
+  }
+
+  .modal-payment-mode-text {
+    font-size: 14px;
+    color: #495057;
+    margin: 0 0 16px;
+    line-height: 1.45;
+  }
+
+  .payment-mode-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 1px solid #dee2e6;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    background: #fff;
+
+    &.selected {
+      border-color: #f0ad4e;
+      background: #fff8eb;
+    }
+
+    strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    span {
+      font-size: 13px;
+      color: #6c757d;
+    }
+  }
+
+  .payment-mode-confirm {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 14px;
+    margin: 12px 0 16px;
+  }
+
+  .payment-mode-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+}

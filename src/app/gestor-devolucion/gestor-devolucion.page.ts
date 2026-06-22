@@ -57,6 +57,11 @@ export class GestorDevolucionPage implements OnInit {
   procesando = false;
   showLiquidationModal = false;
   showLiquidationSuccessModal = false;
+  showPaymentModeModal = false;
+  prizePaymentMode: 'presencial' | 'online' | null = null;
+  onlinePayer: 'partilot' | 'entity' = 'partilot';
+  prizePaymentModeConfirmed = false;
+  private pendingLiquidationBody: any = null;
 
   constructor(
     private router: Router,
@@ -647,7 +652,6 @@ export class GestorDevolucionPage implements OnInit {
       return;
     }
 
-    this.procesando = true;
     const ids = this.participacionesAsignadas.map(p => p.id);
     const setId = this.participacionesAsignadas.length > 0
       ? this.participacionesAsignadas[0].set_id
@@ -657,7 +661,9 @@ export class GestorDevolucionPage implements OnInit {
       entity_id: this.selectedEntity.id,
       lottery_id: this.selectedLottery.id,
       set_id: setId ?? undefined,
+      reserve_id: this.selectedReserve?.id ?? undefined,
       return_reason: this.selectedSeller?.id ? 'Devolución de vendedor a entidad' : 'Devolución de entidad a administración',
+      tipo_devolucion: this.selectedSeller?.id ? 'vendedor' : 'administracion',
       liquidacion: {
         devolver: ids,
         vender: [],
@@ -666,8 +672,57 @@ export class GestorDevolucionPage implements OnInit {
     };
     if (this.selectedSeller?.id) {
       storeBody.seller_id = this.selectedSeller.id;
-      storeBody.tipo_devolucion = 'vendedor';
     }
+
+    if (!this.selectedSeller?.id) {
+      this.pendingLiquidationBody = storeBody;
+      this.prizePaymentMode = null;
+      this.prizePaymentModeConfirmed = false;
+      this.closeLiquidationModal();
+      this.showPaymentModeModal = true;
+      return;
+    }
+
+    this.ejecutarLiquidacion(storeBody);
+  }
+
+  closePaymentModeModal() {
+    this.showPaymentModeModal = false;
+    this.pendingLiquidationBody = null;
+    this.prizePaymentMode = null;
+    this.onlinePayer = 'partilot';
+    this.prizePaymentModeConfirmed = false;
+  }
+
+  selectPrizePaymentMode(mode: 'presencial' | 'online', onlinePayer: 'partilot' | 'entity' = 'partilot') {
+    this.prizePaymentMode = mode;
+    this.onlinePayer = onlinePayer;
+  }
+
+  canConfirmPrizePaymentMode(): boolean {
+    return !!this.prizePaymentMode && this.prizePaymentModeConfirmed;
+  }
+
+  confirmarModalidadPago() {
+    if (!this.pendingLiquidationBody || !this.canConfirmPrizePaymentMode()) {
+      this.mostrarAlerta('Aviso', 'Selecciona la modalidad de pago y confírmala.');
+      return;
+    }
+    const body = {
+      ...this.pendingLiquidationBody,
+      prize_payment_mode: this.prizePaymentMode,
+      ...(this.prizePaymentMode === 'online' ? { online_payer: this.onlinePayer } : {}),
+    };
+    this.showPaymentModeModal = false;
+    this.ejecutarLiquidacion(body);
+    this.pendingLiquidationBody = null;
+    this.prizePaymentMode = null;
+    this.onlinePayer = 'partilot';
+    this.prizePaymentModeConfirmed = false;
+  }
+
+  private ejecutarLiquidacion(storeBody: any) {
+    this.procesando = true;
     this.devolutionsService.storeDevolution(storeBody).subscribe({
       next: (res) => {
         this.procesando = false;
@@ -798,7 +853,11 @@ export class GestorDevolucionPage implements OnInit {
       this.validarPorReferencia(referencia);
     } catch (err) {
       console.error('Error escáner QR:', err);
-      this.mostrarAlerta('Error', 'No se pudo iniciar el escáner. Comprueba permisos de cámara.');
+      if (this.biometricService.isScanCancelled(err)) {
+        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
+        return;
+      }
+      this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     }
   }
 
@@ -823,6 +882,10 @@ export class GestorDevolucionPage implements OnInit {
       this.resolverReferenciaParaCampo(referencia, 'desde');
     } catch (err) {
       console.error('Error escáner QR:', err);
+      if (this.biometricService.isScanCancelled(err)) {
+        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
+        return;
+      }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     }
   }
@@ -848,6 +911,10 @@ export class GestorDevolucionPage implements OnInit {
       this.resolverReferenciaParaCampo(referencia, 'hasta');
     } catch (err) {
       console.error('Error escáner QR:', err);
+      if (this.biometricService.isScanCancelled(err)) {
+        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
+        return;
+      }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
     }
   }

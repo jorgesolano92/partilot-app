@@ -34,9 +34,14 @@ export class CarteraService {
     });
   }
 
-  /** Vincular participación a la cartera */
+  /** Vincular participación a la cartera (digitalizar) */
   linkToWallet(referencia: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/wallet/participations/link`, { referencia });
+  }
+
+  /** Guardar participación física en almacén (solo consulta) */
+  storeInWarehouse(referencia: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/wallet/participations/store-warehouse`, { referencia });
   }
 
   /** Vincular venta digital pendiente por código (email erróneo o registro sin código). */

@@ -5,6 +5,8 @@ import { DevolutionsService } from '../core/services/devolutions.service';
 import { PagoService } from '../core/services/pago.service';
 import { AuthService } from '../core/services/auth.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
+import { BiometricService } from '../core/services/biometric.service';
+import { CarteraService } from '../core/services/cartera.service';
 import { environment } from '../../environments/environment';
 import { ModalExitoPagoComponent } from './modal-exito-pago/modal-exito-pago.component';
 
@@ -43,7 +45,9 @@ export class GestorPagoPage implements OnInit {
     private devolutionsService: DevolutionsService,
     private pagoService: PagoService,
     public authService: AuthService,
-    private alertModal: AlertModalService
+    private alertModal: AlertModalService,
+    private biometricService: BiometricService,
+    private carteraService: CarteraService
   ) {}
 
   ngOnInit() {
@@ -209,6 +213,28 @@ export class GestorPagoPage implements OnInit {
     this.mostrarAlerta('Datos requeridos', 'Indica referencia, un número de participación o un rango (desde y hasta).');
   }
 
+  private handleValidateResponse(res: any, onSuccess: () => void) {
+    if (res.success && res.participations && res.participations.length > 0) {
+      this.agregarALista(res.participations);
+      onSuccess();
+      if (res.rejected?.length) {
+        const detalle = res.rejected
+          .map((r: any) => `${r.participation_code || '—'}: ${r.message}`)
+          .join('\n');
+        void this.mostrarAlerta('Algunas participaciones no se añadieron', detalle);
+      }
+      return;
+    }
+    if (res.rejected?.length) {
+      const detalle = res.rejected
+        .map((r: any) => `${r.participation_code || '—'}: ${r.message}`)
+        .join('\n');
+      this.errorMessage = detalle;
+      return;
+    }
+    this.errorMessage = 'No se encontró participación con premio habilitada para pago presencial.';
+  }
+
   private validarPorReferencia(referencia: string) {
     this.loading = true;
     this.errorMessage = '';
@@ -219,12 +245,7 @@ export class GestorPagoPage implements OnInit {
     }).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res.success && res.participations && res.participations.length > 0) {
-          this.agregarALista(res.participations);
-          this.referencia = '';
-        } else {
-          this.errorMessage = 'No se encontró participación con premio para esa referencia o no pertenece a tu entidad.';
-        }
+        this.handleValidateResponse(res, () => { this.referencia = ''; });
       },
       error: (err) => {
         this.loading = false;
@@ -249,13 +270,10 @@ export class GestorPagoPage implements OnInit {
     }).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res.success && res.participations && res.participations.length > 0) {
-          this.agregarALista(res.participations);
+        this.handleValidateResponse(res, () => {
           this.rangoDesde = '';
           this.rangoHasta = '';
-        } else {
-          this.errorMessage = 'No hay participaciones con premio en ese rango.';
-        }
+        });
       },
       error: (err) => {
         this.loading = false;
@@ -280,12 +298,7 @@ export class GestorPagoPage implements OnInit {
     }).subscribe({
       next: (res) => {
         this.loading = false;
-        if (res.success && res.participations && res.participations.length > 0) {
-          this.agregarALista(res.participations);
-          this.unidadNumero = '';
-        } else {
-          this.errorMessage = 'Esa participación no tiene premio o no pertenece a tu entidad.';
-        }
+        this.handleValidateResponse(res, () => { this.unidadNumero = ''; });
       },
       error: (err) => {
         this.loading = false;
@@ -391,8 +404,70 @@ export class GestorPagoPage implements OnInit {
     this.errorMessage = '';
   }
 
-  escanearQR() {
-    this.router.navigate(['/escaner'], { queryParams: { returnTo: 'gestor-pago', mode: 'pago' } });
+  async escanearQR() {
+    try {
+      const { CapacitorBarcodeScannerTypeHint } = await import('@capacitor/barcode-scanner');
+      const result = await this.biometricService.scanBarcodeWithoutBiometricPause({
+        hint: CapacitorBarcodeScannerTypeHint.QR_CODE,
+        scanText: 'Escanea el código QR de la participación'
+      });
+      const qrText = result?.ScanResult?.trim() || null;
+      const referencia = this.extraerReferenciaDeQR(qrText);
+      if (!referencia) {
+        await this.mostrarAlerta('QR no válido', 'No se pudo obtener la referencia de la participación.');
+        return;
+      }
+      this.procesarReferenciaEscaneada(referencia);
+    } catch (err) {
+      console.error('Error escáner QR:', err);
+      if (this.biometricService.isScanCancelled(err)) {
+        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
+        return;
+      }
+      await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
+    }
+  }
+
+  private procesarReferenciaEscaneada(referencia: string) {
+    this.loading = true;
+    this.errorMessage = '';
+    this.carteraService.checkByReference(referencia).subscribe({
+      next: (checkRes: any) => {
+        const p = checkRes?.participation;
+        const entityId = p?.entity_id ?? p?.set?.reserve?.entity_id ?? p?.set?.reserve?.entity?.id;
+        const lotteryId = p?.set?.reserve?.lottery_id ?? p?.set?.reserve?.lottery?.id;
+        if (!entityId || !lotteryId) {
+          this.loading = false;
+          void this.mostrarAlerta('Error', 'No se pudo identificar la entidad o el sorteo de esta participación.');
+          return;
+        }
+        this.selectedEntity = {
+          id: entityId,
+          name: p?.entity_name ?? p?.set?.reserve?.entity?.name ?? '',
+        };
+        this.selectedLottery = {
+          id: lotteryId,
+          name: p?.set?.reserve?.lottery?.name ?? '',
+        };
+        this.validarPorReferencia(referencia);
+      },
+      error: async (err) => {
+        this.loading = false;
+        await this.mostrarAlerta('Error', err?.error?.message || 'No se encontró la participación.');
+      }
+    });
+  }
+
+  private extraerReferenciaDeQR(qrText: string | null): string | null {
+    if (!qrText) return null;
+    if (qrText.includes('ref=')) {
+      const parts = qrText.split('ref=');
+      if (parts.length > 1) {
+        const referencia = parts[1].split('&')[0].split('#')[0].trim();
+        return referencia || null;
+      }
+    }
+    return qrText.trim() || null;
   }
 
   getImageUrl(path: string | null): string {

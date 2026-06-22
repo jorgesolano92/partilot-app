@@ -14,6 +14,7 @@ import { environment } from '../../environments/environment';
 export class CobrarGestionarPage implements OnInit {
 
   participaciones: any[] = [];
+  participacionesBloqueadas: any[] = [];
   participacionesSeleccionadas: Set<number> = new Set();
   modoCobro = true;
   modoDonacion = false;
@@ -65,14 +66,28 @@ export class CobrarGestionarPage implements OnInit {
 
   loadParticipaciones() {
     this.loading = true;
+    this.participacionesBloqueadas = [];
     this.carteraService.getCobrables().subscribe({
       next: (res) => {
-        this.loading = false;
         if (res.success && Array.isArray(res.participations)) {
           this.participaciones = res.participations;
-          return;
+        } else {
+          this.participaciones = [];
         }
-        this.participaciones = [];
+        this.carteraService.getParticipations().subscribe({
+          next: (walletRes) => {
+            this.loading = false;
+            const wallet = walletRes.participations || [];
+            this.participacionesBloqueadas = wallet.filter((p: any) =>
+              (p.premio ?? 0) > 0
+              && p.payment_blocked
+              && !['cobrada', 'donada', 'caducada', 'regalada'].includes(p.estado)
+            );
+          },
+          error: () => {
+            this.loading = false;
+          }
+        });
       },
       error: () => {
         this.loading = false;
@@ -116,8 +131,11 @@ export class CobrarGestionarPage implements OnInit {
     return p?.entidad ?? null;
   }
 
-  /** Comprueba si una participación puede añadirse a la selección (misma entidad que las ya seleccionadas). */
+  /** Comprueba si una participación puede añadirse a la selección. */
   puedeSeleccionarParticipacion(participacion: any): boolean {
+    if (this.modoCobro) {
+      return true;
+    }
     if (this.participacionesSeleccionadas.size === 0) return true;
     const idActual = this.entityIdDeSeleccion;
     if (idActual != null && participacion.entity_id != null) return participacion.entity_id === idActual;
@@ -133,7 +151,7 @@ export class CobrarGestionarPage implements OnInit {
       if (!this.puedeSeleccionarParticipacion(participacion)) {
         await this.alertModal.show(
           'Misma entidad',
-          'Solo puedes seleccionar participaciones de la misma entidad. Las seleccionadas son de «' + (this.entidadDeSeleccion || '') + '». Deselecciona antes de elegir participaciones de otra entidad.'
+          'Solo puedes donar participaciones de la misma entidad. Las seleccionadas son de «' + (this.entidadDeSeleccion || '') + '». Deselecciona antes de elegir participaciones de otra entidad.'
         );
         return;
       }

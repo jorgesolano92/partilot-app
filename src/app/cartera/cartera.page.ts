@@ -122,6 +122,18 @@ export class CarteraPage implements OnInit, OnDestroy {
     });
   }
 
+  get participacionesCartera(): any[] {
+    return this.participaciones.filter(p => !p.is_storage);
+  }
+
+  get participacionesAlmacen(): any[] {
+    return this.participaciones.filter(p => p.is_storage);
+  }
+
+  esAlmacen(participacion: any): boolean {
+    return !!participacion?.is_storage;
+  }
+
   getImageUrl(path: string | null | undefined): string {
     if (!path) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
@@ -274,7 +286,7 @@ export class CarteraPage implements OnInit, OnDestroy {
   }
 
   puedeRegalar(participacion: any): boolean {
-    if (!participacion) return false;
+    if (!participacion || participacion.is_storage) return false;
     const e = participacion.estado || 'activa';
     if (e === 'cobrada' || e === 'donada' || e === 'caducada' || e === 'regalada' || e === 'pendiente_regalo') return false;
     if (participacion.received_from_email || participacion.gift_status === 'accepted') return false;

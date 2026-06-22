@@ -104,12 +104,29 @@ export class VentasService {
    */
   sellDigitalPending(
     params:
-      | { set_id: number; quantity: number; buyer_email?: string; payment_method?: string | null }
-      | { entity_id: number; lottery_id: number; quantity: number; buyer_email?: string; payment_method?: string | null }
+      | {
+          set_id: number;
+          quantity: number;
+          buyer_email?: string;
+          buyer_phone?: string;
+          notify_channel?: 'email' | 'sms' | 'whatsapp';
+          payment_method?: string | null;
+        }
+      | {
+          entity_id: number;
+          lottery_id: number;
+          quantity: number;
+          buyer_email?: string;
+          buyer_phone?: string;
+          notify_channel?: 'email' | 'sms' | 'whatsapp';
+          payment_method?: string | null;
+        }
   ): Observable<any> {
     const body: any = {
       quantity: params.quantity,
       ...(params.buyer_email != null && params.buyer_email !== '' && { buyer_email: params.buyer_email }),
+      ...(params.buyer_phone != null && params.buyer_phone !== '' && { buyer_phone: params.buyer_phone }),
+      ...(params.notify_channel != null && { notify_channel: params.notify_channel }),
       ...(params.payment_method != null && { payment_method: params.payment_method }),
     };
     if ('set_id' in params) {
@@ -280,7 +297,7 @@ export class VentasService {
    */
   sendPendingDigitalNotify(
     pendingId: number,
-    phone: string
+    phone?: string
   ): Observable<{
     success: boolean;
     message: string;
@@ -298,13 +315,39 @@ export class VentasService {
       buyer_sms_sends_remaining?: number;
     }>(
       `${this.apiUrl}/sales/digital/pending/${pendingId}/notify`,
-      { phone }
+      phone ? { phone } : {}
     );
+  }
+
+  resendPendingDigitalEmail(pendingId: number): Observable<{
+    success: boolean;
+    message: string;
+    masked_buyer_contact?: string;
+  }> {
+    return this.http.post<{
+      success: boolean;
+      message: string;
+      masked_buyer_contact?: string;
+    }>(`${this.apiUrl}/sales/digital/pending/${pendingId}/resend-email`, {});
   }
 
   /** @deprecated Usar sendPendingDigitalNotify */
   sendPendingDigitalWhatsApp(pendingId: number, phone: string) {
     return this.sendPendingDigitalNotify(pendingId, phone);
+  }
+
+  getPendingDigitalWhatsAppLink(pendingId: number): Observable<{
+    success: boolean;
+    whatsapp_url?: string;
+    masked_buyer_contact?: string;
+    message?: string;
+  }> {
+    return this.http.get<{
+      success: boolean;
+      whatsapp_url?: string;
+      masked_buyer_contact?: string;
+      message?: string;
+    }>(`${this.apiUrl}/sales/digital/pending/${pendingId}/whatsapp-link`);
   }
 
   getBuyerNotifyConfig(): Observable<BuyerNotifyConfigResponse> {

@@ -304,32 +304,81 @@
   </div>
 </ion-content>
 
-<!-- Modal Email (para venta digital) -->
-<div class="modal-overlay bottom-sheet" *ngIf="mostrarModalEmail" (click)="cerrarModalEmail()">
+<!-- Modal contacto comprador (venta digital) -->
+<div class="modal-overlay bottom-sheet" *ngIf="mostrarModalContacto" (click)="cerrarModalContacto()">
   <div class="modal-container resumen-modal bottom-sheet-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <div class="modal-header-left">
-        <ion-icon name="mail-outline"></ion-icon>
+        <ion-icon name="person-outline"></ion-icon>
         <div>
-          <h2 class="modal-title">Email del cliente</h2>
-          <p class="modal-subtitle">Introduce el email del cliente para enviarle las instrucciones</p>
+          <h2 class="modal-title">Contacto del comprador</h2>
+          <p class="modal-subtitle">Elige cómo enviar las instrucciones. Es obligatorio.</p>
         </div>
       </div>
-      <ion-button fill="clear" class="close-button" (click)="cerrarModalEmail()">
+      <ion-button fill="clear" class="close-button" (click)="cerrarModalContacto()">
         <ion-icon name="close"></ion-icon>
       </ion-button>
     </div>
     <div class="modal-content">
-      <ion-item class="input-item">
-        <ion-label position="stacked">Email</ion-label>
+      <div class="canal-contacto-opciones">
+        <ion-button
+          expand="block"
+          class="canal-contacto-btn"
+          [class.selected]="canalContactoDigital === 'email'"
+          (click)="seleccionarCanalContacto('email')">
+          <ion-icon name="mail-outline" slot="start"></ion-icon>
+          Por correo
+        </ion-button>
+        <ion-button
+          expand="block"
+          class="canal-contacto-btn"
+          [class.selected]="canalContactoDigital === 'telefono'"
+          (click)="seleccionarCanalContacto('telefono')">
+          <ion-icon name="chatbubble-outline" slot="start"></ion-icon>
+          Por mensaje
+        </ion-button>
+      </div>
+
+      <ion-item class="input-item" *ngIf="canalContactoDigital === 'email'">
+        <ion-label position="stacked">Email del comprador</ion-label>
         <ion-input type="email" [(ngModel)]="emailCliente" placeholder="cliente@ejemplo.com"></ion-input>
       </ion-item>
+
+      <ion-item class="input-item" *ngIf="canalContactoDigital === 'telefono'">
+        <ion-label position="stacked">Teléfono del comprador</ion-label>
+        <ion-input type="tel" [(ngModel)]="telefonoCliente" placeholder="34600111222"></ion-input>
+      </ion-item>
     </div>
-    <ion-button class="registrar-button" expand="block" (click)="verificarEmailYContinuar()">
+    <ion-button class="registrar-button" expand="block" (click)="continuarContactoDigital()">
       Continuar
     </ion-button>
-    <ion-button class="codigo-solo-button" expand="block" fill="outline" (click)="continuarConSoloCodigo()">
-      Continuar sin email
+  </div>
+</div>
+
+<!-- Modal confirmación contacto (no se podrá cambiar) -->
+<div class="modal-overlay bottom-sheet" *ngIf="mostrarModalConfirmacionContacto" (click)="cerrarModalConfirmacionContacto()">
+  <div class="modal-container resumen-modal bottom-sheet-content confirmacion-contacto-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <div>
+          <h2 class="modal-title">Confirma el contacto</h2>
+          <p class="modal-subtitle">Comprueba que es correcto. No se podrá cambiar.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-content confirmacion-contacto-body">
+      <p class="confirmacion-intro">
+        Va a vender <strong>{{ totalParticipaciones }}</strong>
+        {{ totalParticipaciones === 1 ? 'participación' : 'participaciones' }} a:
+      </p>
+      <p class="confirmacion-contacto-valor">{{ contactoConfirmacionDisplay }}</p>
+    </div>
+    <ion-button class="registrar-button" expand="block" (click)="aceptarConfirmacionContacto()">
+      Aceptar y continuar
+    </ion-button>
+    <ion-button class="codigo-solo-button" expand="block" fill="outline" (click)="cambiarContactoDigital()">
+      Cambiar
     </ion-button>
   </div>
 </div>
@@ -418,37 +467,37 @@
     <h2 class="modal-title-exito">Venta registrada con éxito</h2>
     <div class="modal-content-exito">
       <p>Puedes consultar el detalle en el historial de ventas o continuar con una nueva venta.</p>
-      <p *ngIf="ultimaVentaConEmail" class="codigo-vinculacion-exito">
-        Se ha enviado un correo al comprador con las instrucciones para reclamar sus participaciones en Partilot.
+      <p *ngIf="ultimaVentaMaskedContact" class="codigo-vinculacion-exito">
+        Comprador: <strong>{{ ultimaVentaMaskedContact }}</strong>
       </p>
-      <p *ngIf="ultimaVentaSinEmail && !notificacionEnviada" class="codigo-vinculacion-exito">
-        <ng-container *ngIf="notifyAutoEnabled">
-          Introduce el teléfono del comprador para enviarle el código y el enlace por {{ getNotifyChannelLabel() }} (no se mostrará en la app).
-        </ng-container>
-        <ng-container *ngIf="!notifyAutoEnabled">
-          Introduce el teléfono para abrir WhatsApp manualmente (sin código). Activa DIGITAL_SALE_SMS_ENABLED en el servidor para envío automático por SMS.
-        </ng-container>
+      <p *ngIf="ultimaVentaConEmail || (ultimaVentaCanal === 'email' && notificacionEnviada)" class="codigo-vinculacion-exito">
+        Se ha enviado un correo al comprador con las instrucciones para reclamar sus participaciones.
       </p>
-      <p *ngIf="ultimaVentaSinEmail && notificacionEnviada" class="codigo-vinculacion-exito whatsapp-ok">
-        Mensaje enviado al comprador correctamente.
+      <p *ngIf="ultimaVentaCanal === 'sms' && notificacionEnviada" class="codigo-vinculacion-exito whatsapp-ok">
+        SMS enviado al comprador correctamente.
       </p>
-      <div *ngIf="ultimaVentaSinEmail && !notificacionEnviada" class="whatsapp-exito-block">
-        <ion-item class="input-item whatsapp-exito-input" lines="none">
-          <ion-label position="stacked">Teléfono del comprador</ion-label>
-          <ion-input
-            type="tel"
-            [(ngModel)]="telefonoCompradorWhatsApp"
-            placeholder="34600111222"
-            [disabled]="enviandoNotificacion">
-          </ion-input>
-        </ion-item>
+      <p *ngIf="puedeReenviarMensajeExito && !notificacionEnviada" class="codigo-vinculacion-exito">
+        Pulsa el botón para enviar el mensaje al comprador registrado.
+      </p>
+      <div *ngIf="puedeReenviarMensajeExito" class="whatsapp-exito-block">
         <ion-button
           class="btn-whatsapp-exito"
           expand="block"
-          [disabled]="enviandoNotificacion || !telefonoCompradorWhatsApp.trim()"
+          [disabled]="enviandoNotificacion"
           (click)="enviarNotificacionComprador()">
-          <ion-icon [name]="buyerNotifyChannel === 'sms' ? 'chatbubble-outline' : 'logo-whatsapp'" slot="start"></ion-icon>
+          <ion-icon [name]="ultimaVentaCanal === 'sms' ? 'chatbubble-outline' : 'logo-whatsapp'" slot="start"></ion-icon>
           {{ getBotonMensajeCompradorLabel() }}
+        </ion-button>
+      </div>
+      <div *ngIf="puedeReenviarEmailExito" class="whatsapp-exito-block">
+        <ion-button
+          class="btn-whatsapp-exito"
+          expand="block"
+          fill="outline"
+          [disabled]="enviandoNotificacion"
+          (click)="reenviarEmailComprador()">
+          <ion-icon name="mail-outline" slot="start"></ion-icon>
+          {{ notificacionEnviada ? 'Reenviar correo' : 'Reenviar correo' }}
         </ion-button>
       </div>
     </div>
@@ -456,7 +505,7 @@
       class="aceptar-button" 
       expand="block"
       (click)="cerrarModalExito()">
-      {{ ultimaVentaSinEmail && !notificacionEnviada ? 'Continuar sin enviar' : 'Aceptar' }}
+      Aceptar
     </ion-button>
   </div>
 </div>
