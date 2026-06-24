@@ -105,6 +105,7 @@ export class AppComponent implements OnInit, OnDestroy {
     try {
       await StatusBar.setOverlaysWebView({ overlay: false });
       await StatusBar.setStyle({ style: Style.Light });
+      await StatusBar.setBackgroundColor({ color: '#ffffff' });
     } catch (e) {
       console.warn('StatusBar no disponible:', e);
     }

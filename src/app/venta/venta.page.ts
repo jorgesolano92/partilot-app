@@ -5,6 +5,13 @@ import { AuthService } from '../core/services/auth.service';
 import { AlertController } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
 import { environment } from '../../environments/environment';
+import {
+  formatParticipationInput,
+  hasSetPrefixComplete,
+  isParticipationInputComplete,
+  parseParticipationInput,
+  setPrefixKey,
+} from '../core/utils/participation-input.util';
 
 @Component({
   selector: 'app-venta',
@@ -20,10 +27,12 @@ export class VentaPage implements OnInit {
   selectedEntity: any = null;
   showEntitySelection: boolean = false;
   
-  // Vista 2: Selección de sorteos
+  // Vista 2: Selección de sorteos / reservas
   lotteries: any[] = [];
   selectedLottery: any = null;
   showLotteriesList: boolean = false;
+  showReserveSelection: boolean = false;
+  reservesForSelection: any[] = [];
   
   // Vista 3: Venta (física o digital)
   showVentaView: boolean = false;
@@ -34,7 +43,13 @@ export class VentaPage implements OnInit {
   allSets: any[] = [];
   sets: any[] = [];
   reserveSeleccionado: any = null;
+  reserveDigitalSeleccionado: any = null;
+  reserveDigitalId: number | null = null;
+  private digitalAvailabilityRequestId = 0;
   setSeleccionado: any = null;
+  setInputError = '';
+  infoSetReservado = '';
+  validatedSetPrefix = '';
   
   // Para participaciones físicas
   participacionUnidad: string = '';
@@ -111,11 +126,16 @@ export class VentaPage implements OnInit {
     this.showEntitySelection = false;
     this.showLotteriesList = false;
     this.showVentaView = false;
+    this.showReserveSelection = false;
+    this.reservesForSelection = [];
     this.reserves = [];
     this.allSets = [];
     this.sets = [];
     this.reserveSeleccionado = null;
+    this.reserveDigitalSeleccionado = null;
+    this.reserveDigitalId = null;
     this.setSeleccionado = null;
+    this.clearSetInputState();
     this.loadEntities();
   }
 
@@ -161,16 +181,13 @@ export class VentaPage implements OnInit {
         this.loading = false;
         if (res.success) {
           this.lotteries = res.lotteries || [];
-          // Siempre mostrar el paso de selección de sorteo (aunque haya solo 1)
-          // para que selectLottery() llame a loadReservesAndSets() correctamente
           if (this.lotteries.length === 1) {
-            this.selectedLottery = this.lotteries[0];
-            this.showLotteriesList = true;
+            this.selectLottery(this.lotteries[0]);
           } else if (this.lotteries.length > 1) {
             this.showLotteriesList = true;
           } else {
             await this.mostrarAlerta('Sin sorteos', 'No hay sorteos disponibles con reservas, sets y diseño para esta entidad.');
-            this.showLotteriesList = true; // Mostrar vista de sorteos (vacía) para que aparezca la flecha atrás
+            this.showLotteriesList = true;
           }
         } else {
           await this.mostrarAlerta('Error', res.message || 'Error al cargar los sorteos.');
@@ -188,7 +205,8 @@ export class VentaPage implements OnInit {
   selectLottery(lottery: any) {
     this.selectedLottery = lottery;
     this.showLotteriesList = false;
-    this.showVentaView = true;
+    this.showReserveSelection = false;
+    this.showVentaView = false;
     this.loadReservesAndSets();
   }
   
@@ -198,67 +216,117 @@ export class VentaPage implements OnInit {
     this.ventasService.getReserves().subscribe({
       next: async (res: any) => {
         this.loading = false;
-        console.log('Respuesta completa de getReserves:', res);
-        if (res.success && res.reserves) {
-          console.log('Reserves recibidas:', res.reserves);
-          // Filtrar TODAS las reservas de la entidad y sorteo seleccionados (puede haber varias)
-          const matchingReserves = res.reserves.filter((r: any) => {
-            const entityId = r.entity_id || r.entity?.id;
-            const lotteryId = r.lottery_id || r.lottery?.id;
-            return entityId === this.selectedEntity.id && lotteryId === this.selectedLottery.id;
-          });
-
-          if (matchingReserves.length > 0) {
-            this.reserves = matchingReserves;
-            this.reserveSeleccionado = matchingReserves[0];
-            this.rebuildAllSetsFromMatchingReserves(matchingReserves);
-            this.applySetsFilter();
-            console.log('Sets encontrados:', this.allSets, 'filtrados:', this.sets);
-
-            if (this.sets.length > 0) {
-              console.log('Set seleccionado automáticamente:', this.setSeleccionado);
-            } else {
-              console.log('No hay sets del tipo seleccionado');
-            }
-          } else {
-            console.log('No se encontró reserva, intentando con reserve_id');
-            // Si no encuentra reserva, intentar cargar desde el reserve_id del sorteo
-            if (this.selectedLottery.reserve_id) {
-              const reserveById = res.reserves.find((r: any) => r.id === this.selectedLottery.reserve_id);
-              if (reserveById) {
-                console.log('Reserva encontrada por ID:', reserveById);
-                this.reserveSeleccionado = reserveById;
-                this.reserves = [reserveById];
-                this.allSets = this.attachReserveToSets(reserveById.sets || [], reserveById);
-                this.applySetsFilter();
-                if (this.sets.length > 0) {
-                  console.log('Set seleccionado desde reserve_id:', this.setSeleccionado);
-                } else {
-                  console.log('No hay sets disponibles en la reserva por ID');
-                }
-              } else {
-                console.log('No se encontró reserva con ID:', this.selectedLottery.reserve_id);
-              }
-            } else {
-              console.log('No hay reserve_id en el sorteo seleccionado');
-            }
-          }
-        } else {
-          console.log('No se recibieron reservas o la respuesta no fue exitosa');
+        if (!res.success || !res.reserves) {
+          this.showVentaView = true;
+          return;
         }
+
+        const matchingReserves = res.reserves.filter((r: any) => {
+          const entityId = r.entity_id || r.entity?.id;
+          const lotteryId = r.lottery_id || r.lottery?.id;
+          return entityId === this.selectedEntity.id && lotteryId === this.selectedLottery.id;
+        });
+
+        if (matchingReserves.length === 0 && this.selectedLottery.reserve_id) {
+          const reserveById = res.reserves.find((r: any) => r.id === this.selectedLottery.reserve_id);
+          if (reserveById) {
+            matchingReserves.push(reserveById);
+          }
+        }
+
+        this.reserves = matchingReserves;
+        this.configureReserveFlow(matchingReserves);
       },
       error: async (err) => {
         this.loading = false;
         console.error('Error al cargar reservas:', err);
+        this.showVentaView = true;
       }
     });
   }
 
+  private configureReserveFlow(matchingReserves: any[]): void {
+    // Siempre cargar sets de TODAS las reservas del sorteo (digitales = pool entidad+sorteo).
+    this.rebuildAllSetsFromMatchingReserves(matchingReserves);
+
+    const withPhysicalStock = this.getReservesWithPhysicalStock(matchingReserves);
+
+    // Elegir reserva solo si hay asignaciones físicas en más de una reserva.
+    if (withPhysicalStock.length > 1) {
+      this.reservesForSelection = withPhysicalStock;
+      this.showReserveSelection = true;
+      this.showVentaView = false;
+      this.reserveSeleccionado = null;
+      return;
+    }
+
+    this.showReserveSelection = false;
+    this.reserveSeleccionado = withPhysicalStock[0] ?? null;
+    this.applySetsFilter();
+    this.showVentaView = true;
+  }
+
+  selectReserve(reserve: any) {
+    this.reserveSeleccionado = reserve;
+    this.showReserveSelection = false;
+    this.clearSetInputState();
+    this.participacionUnidad = '';
+    this.rangoDesde = '';
+    this.rangoHasta = '';
+    this.applySetsFilter();
+    this.showVentaView = true;
+  }
+
+  backToReserveSelection() {
+    if (this.reservesForSelection.length > 1) {
+      this.showVentaView = false;
+      this.showReserveSelection = true;
+      this.clearSetInputState();
+      this.participacionUnidad = '';
+      this.rangoDesde = '';
+      this.rangoHasta = '';
+    } else {
+      this.backToLotteries();
+    }
+  }
+
+  /** Reservas donde el vendedor tiene participaciones físicas asignadas. */
+  private getReservesWithPhysicalStock(matchingReserves: any[]): any[] {
+    return matchingReserves.filter((reserve) => {
+      const sets = reserve.sets || [];
+      return sets.some((s: any) => Number(s.physical_available_to_seller ?? 0) > 0);
+    });
+  }
+
+  /** Reservas con stock digital disponible (pool del set; no requiere asignación). */
+  private getReservesWithDigitalStock(matchingReserves: any[]): any[] {
+    return matchingReserves.filter((reserve) => {
+      const sets = reserve.sets || [];
+      return sets.some((s: any) => Number(s.digital_available_to_seller ?? 0) > 0);
+    });
+  }
+
+  private clearSetInputState(): void {
+    this.setInputError = '';
+    this.infoSetReservado = '';
+    this.validatedSetPrefix = '';
+  }
+
+  private resetSetFromInput(): void {
+    this.setSeleccionado = null;
+    this.disponibilidad = 0;
+    this.clearSetInputState();
+  }
+
   backToLotteries() {
     this.showVentaView = false;
+    this.showReserveSelection = false;
+    this.reservesForSelection = [];
     this.selectedLottery = null;
     this.reserveSeleccionado = null;
-    this.setSeleccionado = null;
+    this.reserveDigitalSeleccionado = null;
+    this.reserveDigitalId = null;
+    this.resetSetFromInput();
     this.sets = [];
     this.reserves = [];
     this.participacionUnidad = '';
@@ -267,7 +335,6 @@ export class VentaPage implements OnInit {
     if (this.lotteries.length > 1) {
       this.showLotteriesList = true;
     } else if (this.lotteries.length === 1) {
-      // Si solo hay un sorteo, volver a la lista para poder seleccionarlo de nuevo
       this.showLotteriesList = true;
     }
   }
@@ -275,16 +342,20 @@ export class VentaPage implements OnInit {
   backToEntities() {
     this.showLotteriesList = false;
     this.showVentaView = false;
+    this.showReserveSelection = false;
+    this.reservesForSelection = [];
     this.selectedLottery = null;
     this.lotteries = [];
     this.reserveSeleccionado = null;
-    this.setSeleccionado = null;
+    this.reserveDigitalSeleccionado = null;
+    this.reserveDigitalId = null;
+    this.resetSetFromInput();
     this.sets = [];
     this.reserves = [];
     this.participacionUnidad = '';
     this.rangoDesde = '';
     this.rangoHasta = '';
-    this.showEntitySelection = true; // Siempre volver a selección de entidad (aunque solo haya 1, para poder salir)
+    this.showEntitySelection = true;
   }
 
   /** Navegar al Home (útil cuando solo hay una entidad y se vuelve desde sorteos). */
@@ -309,7 +380,10 @@ export class VentaPage implements OnInit {
     this.rangoDesde = '';
     this.rangoHasta = '';
     this.numeroParticipaciones = 1;
-    this.setSeleccionado = null;
+    this.resetSetFromInput();
+    if (this.tipoParticipacion === 'digitales') {
+      this.ensureDigitalReserveSelected();
+    }
     if (this.reserves?.length) {
       this.rebuildAllSetsFromMatchingReserves(this.reserves);
     }
@@ -320,13 +394,27 @@ export class VentaPage implements OnInit {
   applySetsFilter() {
     if (!this.allSets.length) {
       this.sets = [];
-      this.setSeleccionado = null;
+      this.resetSetFromInput();
       this.totalDigitalAvailable = 0;
-      this.disponibilidad = 0;
       return;
     }
+
+    let pool = this.allSets;
+    if (this.tipoParticipacion === 'fisicas' && this.reserveSeleccionado?.id) {
+      const reserveId = this.reserveSeleccionado.id;
+      pool = this.allSets.filter(
+        (s: any) => (s.reserve?.id ?? s.reserve_id) === reserveId
+      );
+    }
+    if (this.tipoParticipacion === 'digitales' && this.reserveDigitalId) {
+      const reserveId = Number(this.reserveDigitalId);
+      pool = this.allSets.filter(
+        (s: any) => Number(s.reserve?.id ?? s.reserve_id) === reserveId
+      );
+    }
+
     if (this.tipoParticipacion === 'fisicas') {
-      const physicalSets = this.allSets.filter((s: any) => {
+      const physicalSets = pool.filter((s: any) => {
         const phys = Number(s.physical_participations ?? 0);
         const dig = Number(s.digital_participations ?? 0);
         return phys > 0 && dig === 0;
@@ -340,16 +428,10 @@ export class VentaPage implements OnInit {
         seenIds.add(id);
         return true;
       });
-      if (this.sets.length > 0) {
-        this.setSeleccionado = this.sets[0];
-        this.actualizarDisponibilidadFisicaDesdeSet();
-      } else {
-        this.setSeleccionado = null;
-        this.disponibilidad = 0;
-      }
+      this.resetSetFromInput();
       this.totalDigitalAvailable = 0;
     } else {
-      const digitalSets = this.allSets.filter((s: any) => {
+      const digitalSets = pool.filter((s: any) => {
         const dig = Number(s.digital_participations ?? 0);
         const phys = Number(s.physical_participations ?? 0);
         return dig > 0 && phys === 0;
@@ -363,15 +445,93 @@ export class VentaPage implements OnInit {
         seenIds.add(id);
         return true;
       });
-      if (this.sets.length > 0) {
-        this.setSeleccionado = this.sets[0];
-        this.actualizarDisponibilidadDigitalDesdeSet();
-      } else {
-        this.setSeleccionado = null;
-        this.totalDigitalAvailable = 0;
-        this.disponibilidad = 0;
-      }
+      this.setSeleccionado = null;
+      this.actualizarDisponibilidadDigitalPool();
     }
+  }
+
+  actualizarDisponibilidadDigitalPool() {
+    if (!this.selectedEntity?.id || !this.selectedLottery?.id) {
+      this.totalDigitalAvailable = 0;
+      this.disponibilidad = 0;
+      this.precioPorParticipacion = 0;
+      return;
+    }
+
+    const digitalesReserves = this.getReservesDigitalesDisponibles();
+    const reserveId = this.resolveDigitalReserveId();
+
+    if (digitalesReserves.length > 1 && !reserveId) {
+      this.totalDigitalAvailable = 0;
+      this.disponibilidad = 0;
+      this.precioPorParticipacion = 0;
+      return;
+    }
+
+    if (!reserveId) {
+      this.totalDigitalAvailable = 0;
+      this.disponibilidad = 0;
+      this.precioPorParticipacion = 0;
+      return;
+    }
+
+    const reserve = digitalesReserves.find((r) => Number(r.id) === reserveId) ?? null;
+    if (reserve) {
+      const localStock = this.getDigitalStockForReserve(reserve);
+      this.totalDigitalAvailable = localStock;
+      this.disponibilidad = localStock;
+      this.reserveDigitalSeleccionado = reserve;
+      this.reserveDigitalId = reserveId;
+    }
+
+    const requestId = ++this.digitalAvailabilityRequestId;
+    this.ventasService.getTotalDigitalAvailable({
+      entity_id: this.selectedEntity.id,
+      lottery_id: this.selectedLottery.id,
+      reserve_id: reserveId,
+    }).subscribe({
+      next: (res: any) => {
+        if (requestId !== this.digitalAvailabilityRequestId) {
+          return;
+        }
+        if (res.success) {
+          if (reserve) {
+            const localStock = this.getDigitalStockForReserve(reserve);
+            this.totalDigitalAvailable = localStock;
+            this.disponibilidad = localStock;
+          } else {
+            const apiTotal = res.total_digital_available ?? 0;
+            this.totalDigitalAvailable = apiTotal;
+            this.disponibilidad = apiTotal;
+          }
+          if (res.price_per_participation != null) {
+            this.precioPorParticipacion = res.price_per_participation;
+          } else if (this.sets[0]?.played_amount != null) {
+            const played = parseFloat(this.sets[0].played_amount) || 0;
+            const donation = parseFloat(this.sets[0].donation_amount) || 0;
+            this.precioPorParticipacion = played + donation;
+          }
+          if (this.numeroParticipaciones > this.totalDigitalAvailable && this.totalDigitalAvailable > 0) {
+            this.numeroParticipaciones = this.totalDigitalAvailable;
+          } else if (this.totalDigitalAvailable === 0) {
+            this.numeroParticipaciones = 1;
+          }
+        }
+      },
+      error: () => {
+        if (requestId !== this.digitalAvailabilityRequestId) {
+          return;
+        }
+        if (reserve) {
+          const localStock = this.getDigitalStockForReserve(reserve);
+          this.totalDigitalAvailable = localStock;
+          this.disponibilidad = localStock;
+        } else {
+          this.totalDigitalAvailable = 0;
+          this.disponibilidad = 0;
+        }
+      },
+    });
   }
 
   actualizarDisponibilidadFisicaDesdeSet() {
@@ -443,29 +603,11 @@ export class VentaPage implements OnInit {
     }
   }
 
-  private applySetsFilterPreservingSelection(preserveSetId?: number | null): void {
-    const id = preserveSetId ?? this.setSeleccionado?.id;
-    this.applySetsFilter();
-    if (!id) {
-      return;
-    }
-    const found = this.sets.find((s: any) => Number(s.id) === Number(id));
-    if (found) {
-      this.setSeleccionado = found;
-      if (this.tipoParticipacion === 'digitales') {
-        this.actualizarDisponibilidadDigitalDesdeSet();
-      } else {
-        this.actualizarDisponibilidadFisicaDesdeSet();
-      }
-    }
-  }
-
-  /** Recarga reservas/sets desde API tras una venta para actualizar disponibilidades. */
   private refreshSetsAvailabilityAfterSale(): void {
     if (!this.selectedLottery?.id || !this.selectedEntity?.id) {
       return;
     }
-    const preserveSetId = this.setSeleccionado?.id;
+    const preservePrefix = this.validatedSetPrefix;
     this.ventasService.getReserves().subscribe({
       next: (res: any) => {
         if (!res?.success || !res.reserves) {
@@ -479,7 +621,16 @@ export class VentaPage implements OnInit {
         if (matching.length > 0) {
           this.reserves = matching;
           this.rebuildAllSetsFromMatchingReserves(matching);
-          this.applySetsFilterPreservingSelection(preserveSetId);
+          if (this.tipoParticipacion === 'digitales') {
+            this.ensureDigitalReserveSelected();
+          }
+          this.applySetsFilter();
+          if (preservePrefix && this.tipoParticipacion === 'fisicas') {
+            this.validateSetFromInputValue(preservePrefix);
+          }
+          if (this.tipoParticipacion === 'digitales') {
+            this.actualizarDisponibilidadDigitalPool();
+          }
         }
       },
     });
@@ -522,30 +673,205 @@ export class VentaPage implements OnInit {
   getSetOptionLabel(set: any, tipo: 'fisicas' | 'digitales'): string {
     const name = set?.set_name || 'Set';
     const reserved = this.getReservedNumbersLabel(set);
+    const setNum = set?.set_number != null ? String(set.set_number).padStart(2, '0') : '';
     const disp = tipo === 'fisicas'
       ? (set?.physical_available_to_seller ?? 0)
       : (set?.digital_available_to_seller ?? 0);
+    const prefix = setNum ? `Set ${setNum}` : name;
     if (reserved) {
-      return `${name} · Nº ${reserved} (${disp} disp.)`;
+      return `${prefix} · Nº ${reserved} (${disp} disp.)`;
     }
-    return `${name} (${disp} disp.)`;
+    return `${prefix} (${disp} disp.)`;
   }
 
-  /** Obsoleto en UI: el sorteo ya está elegido; los sets vienen de todas las reservas. */
-  onReserveChange() {
-    if (this.reserves?.length) {
-      this.rebuildAllSetsFromMatchingReserves(this.reserves);
-      this.applySetsFilter();
+  getReservaNumbersDisplay(): string {
+    if (this.infoSetReservado) {
+      return this.infoSetReservado;
+    }
+    if (this.tipoParticipacion === 'digitales') {
+      if (this.reserveDigitalSeleccionado) {
+        return this.formatReserveNumbers(this.reserveDigitalSeleccionado);
+      }
+      const disponibles = this.getReservesDigitalesDisponibles();
+      if (disponibles.length === 1) {
+        return this.formatReserveNumbers(disponibles[0]);
+      }
+      return '';
+    }
+    const reserve = this.reserveSeleccionado;
+    if (reserve) {
+      return this.formatReserveNumbers(reserve);
+    }
+    return this.reserves
+      .map((r) => this.formatReserveNumbers(r))
+      .filter((v) => v !== '')
+      .join(' · ');
+  }
+
+  getReserveNumbersLabel(reserve: any): string {
+    return this.formatReserveNumbers(reserve);
+  }
+
+  getReservesDigitalesDisponibles(): any[] {
+    return this.getReservesWithDigitalStock(this.reserves);
+  }
+
+  getDigitalStockForReserve(reserve: any): number {
+    const sets = (reserve?.sets || []).filter((s: any) => {
+      const dig = Number(s.digital_participations ?? 0);
+      const phys = Number(s.physical_participations ?? 0);
+      return dig > 0 && phys === 0;
+    });
+    return sets.reduce(
+      (sum: number, s: any) => sum + Number(s.digital_available_to_seller ?? 0),
+      0
+    );
+  }
+
+  private ensureDigitalReserveSelected(): void {
+    const disponibles = this.getReservesDigitalesDisponibles();
+    if (disponibles.length === 0) {
+      this.reserveDigitalSeleccionado = null;
+      this.reserveDigitalId = null;
+      return;
+    }
+    const currentId = this.reserveDigitalId != null ? Number(this.reserveDigitalId) : null;
+    const stillValid = currentId != null
+      && disponibles.some((r) => Number(r.id) === currentId);
+    if (!stillValid) {
+      if (disponibles.length === 1) {
+        this.reserveDigitalSeleccionado = disponibles[0];
+        this.reserveDigitalId = Number(disponibles[0].id);
+      } else {
+        this.reserveDigitalSeleccionado = null;
+        this.reserveDigitalId = null;
+      }
     }
   }
 
+  private resolveDigitalReserveId(): number | null {
+    if (this.reserveDigitalId != null && Number(this.reserveDigitalId) > 0) {
+      return Number(this.reserveDigitalId);
+    }
+    if (this.reserveDigitalSeleccionado?.id != null) {
+      return Number(this.reserveDigitalSeleccionado.id);
+    }
+    const disponibles = this.getReservesDigitalesDisponibles();
+    if (disponibles.length === 1) {
+      return Number(disponibles[0].id);
+    }
+    return null;
+  }
+
+  onDigitalReserveSelected(reserveId: number | string | null | undefined): void {
+    const id = Number(reserveId);
+    if (!id) {
+      this.reserveDigitalSeleccionado = null;
+      this.reserveDigitalId = null;
+      this.totalDigitalAvailable = 0;
+      this.disponibilidad = 0;
+      return;
+    }
+    this.reserveDigitalId = id;
+    this.reserveDigitalSeleccionado =
+      this.getReservesDigitalesDisponibles().find((r) => Number(r.id) === id) ?? null;
+    this.numeroParticipaciones = 1;
+    this.applySetsFilter();
+  }
+
+  private formatReserveNumbers(reserve: any): string {
+    const nums = reserve?.reservation_numbers;
+    if (Array.isArray(nums)) {
+      return nums.filter((n) => n != null && String(n).trim() !== '').join(' - ');
+    }
+    return nums != null ? String(nums) : '';
+  }
+
+  onParticipacionUnidadInput(event: CustomEvent) {
+    const formatted = formatParticipationInput(String(event.detail?.value ?? ''));
+    this.participacionUnidad = formatted;
+    if (formatted) {
+      this.rangoDesde = '';
+      this.rangoHasta = '';
+    }
+    this.validateSetFromInputValue(formatted);
+  }
+
+  onRangoDesdeInput(event: CustomEvent) {
+    const formatted = formatParticipationInput(String(event.detail?.value ?? ''));
+    this.rangoDesde = formatted;
+    if (formatted) {
+      this.participacionUnidad = '';
+    }
+    this.validateSetFromInputValue(formatted);
+  }
+
+  onRangoHastaInput(event: CustomEvent) {
+    const formatted = formatParticipationInput(String(event.detail?.value ?? ''));
+    this.rangoHasta = formatted;
+    if (formatted) {
+      this.participacionUnidad = '';
+    }
+    const desdePrefix = setPrefixKey(this.rangoDesde);
+    const hastaPrefix = setPrefixKey(formatted);
+    if (desdePrefix && hastaPrefix && desdePrefix !== hastaPrefix) {
+      this.setInputError = 'El rango debe pertenecer al mismo set.';
+      return;
+    }
+    if (hasSetPrefixComplete(formatted)) {
+      this.validateSetFromInputValue(formatted);
+    }
+  }
+
+  private validateSetFromInputValue(value: string): void {
+    if (!hasSetPrefixComplete(value)) {
+      if (!value.trim()) {
+        this.resetSetFromInput();
+      }
+      return;
+    }
+
+    const prefix = setPrefixKey(value);
+    if (this.validatedSetPrefix === prefix && this.setSeleccionado) {
+      return;
+    }
+
+    const setNumber = parseInt(prefix.slice(0, 2), 10);
+    const set = this.findPhysicalSetByNumber(setNumber);
+    if (!set) {
+      this.setInputError = `No tienes participaciones asignadas en el set ${String(setNumber).padStart(2, '0')}.`;
+      this.resetSetFromInput();
+      this.validatedSetPrefix = prefix;
+      return;
+    }
+
+    this.setInputError = '';
+    this.validatedSetPrefix = prefix;
+    this.setSeleccionado = set;
+    this.infoSetReservado = this.getReservedNumbersLabel(set);
+    this.actualizarDisponibilidadFisicaDesdeSet();
+  }
+
+  private findPhysicalSetByNumber(setNumber: number): any | null {
+    return this.sets.find((s) => Number(s.set_number) === setNumber) ?? null;
+  }
+
+  private getPrecioUnitarioFisico(): number {
+    if (!this.setSeleccionado) {
+      return 0;
+    }
+    const played = parseFloat(this.setSeleccionado.played_amount) || 0;
+    const donation = parseFloat(this.setSeleccionado.donation_amount) || 0;
+    return played + donation;
+  }
+
+  /** Obsoleto: el set se resuelve al escribir SS/ en la participación. */
   onSetChange() {
     if (!this.setSeleccionado) {
       return;
     }
     if (this.tipoParticipacion === 'digitales') {
-      this.numeroParticipaciones = 1;
-      this.actualizarDisponibilidadDigitalDesdeSet();
+      this.actualizarDisponibilidadDigitalPool();
     } else {
       this.actualizarDisponibilidadFisicaDesdeSet();
     }
@@ -568,18 +894,20 @@ export class VentaPage implements OnInit {
 
   puedeVender(): boolean {
     if (this.tipoParticipacion === 'fisicas') {
-      if (!this.setSeleccionado) return false;
-      const participacionUnidadStr = String(this.participacionUnidad || '').trim();
-      const rangoDesdeStr = String(this.rangoDesde || '').trim();
-      const rangoHastaStr = String(this.rangoHasta || '').trim();
-      const tieneUnidad = participacionUnidadStr.length > 0;
-      const tieneRango = rangoDesdeStr.length > 0 && rangoHastaStr.length > 0;
-      return tieneUnidad || tieneRango;
+      if (!this.setSeleccionado || this.disponibilidad <= 0 || this.setInputError) {
+        return false;
+      }
+      const unidadOk = isParticipationInputComplete(this.participacionUnidad);
+      const rangoOk =
+        isParticipationInputComplete(this.rangoDesde) &&
+        isParticipationInputComplete(this.rangoHasta) &&
+        setPrefixKey(this.rangoDesde) === setPrefixKey(this.rangoHasta);
+      return unidadOk || rangoOk;
     }
-  // Digitales: set seleccionado + cantidad dentro de lo asignado al vendedor
-    return !!this.setSeleccionado?.id
+    return this.totalDigitalAvailable > 0
       && this.numeroParticipaciones > 0
-      && this.numeroParticipaciones <= this.totalDigitalAvailable;
+      && this.numeroParticipaciones <= this.totalDigitalAvailable
+      && (this.getReservesDigitalesDisponibles().length <= 1 || !!this.resolveDigitalReserveId());
   }
 
   calcularTotalParticipaciones(): number {
@@ -609,7 +937,9 @@ export class VentaPage implements OnInit {
 
   mostrarResumen() {
     this.totalParticipaciones = this.calcularTotalParticipaciones();
-    const precio = this.tipoParticipacion === 'digitales' ? this.precioPorParticipacion : (parseFloat(this.setSeleccionado?.played_amount as any) || 0);
+    const precio = this.tipoParticipacion === 'digitales'
+      ? this.precioPorParticipacion
+      : this.getPrecioUnitarioFisico();
     this.importeTotal = this.totalParticipaciones * precio;
     this.formaPago = null;
     if (this.tipoParticipacion === 'digitales') {
@@ -766,14 +1096,10 @@ export class VentaPage implements OnInit {
     }
 
     if (this.tipoParticipacion === 'digitales') {
-      if (!this.setSeleccionado?.id) {
-        await this.mostrarAlerta('Error', 'Selecciona el set digital del que quieres vender.');
-        return;
-      }
       if (this.totalDigitalAvailable < 1) {
         await this.mostrarAlerta(
           'Sin stock',
-          'No hay participaciones digitales disponibles en este set.'
+          'No hay participaciones digitales disponibles.'
         );
         return;
       }
@@ -796,11 +1122,21 @@ export class VentaPage implements OnInit {
 
       this.loading = true;
       const paymentMethod = this.formaPago === 'omitir' ? null : this.formaPago;
-      const digitalBase = {
-        set_id: this.setSeleccionado.id,
+      const digitalBase: {
+        entity_id: number;
+        lottery_id: number;
+        quantity: number;
+        payment_method: string | null;
+        reserve_id?: number;
+      } = {
+        entity_id: this.selectedEntity!.id,
+        lottery_id: this.selectedLottery!.id,
         quantity: this.numeroParticipaciones,
         payment_method: paymentMethod,
       };
+      if (this.resolveDigitalReserveId()) {
+        digitalBase.reserve_id = this.resolveDigitalReserveId()!;
+      }
 
       const sale$ = this.ventaPendienteRegistro || esTelefono
         ? this.ventasService.sellDigitalPending(
@@ -868,22 +1204,29 @@ export class VentaPage implements OnInit {
 
     // Físicas
     if (!this.setSeleccionado) {
-      await this.mostrarAlerta('Error', 'Selecciona un set válido.');
+      await this.mostrarAlerta('Error', 'Indica un set válido (ej. 01/00001).');
       return;
     }
     let desde: number;
     let hasta: number;
-    if (this.participacionUnidad) {
+    if (isParticipationInputComplete(this.participacionUnidad)) {
       desde = hasta = this.extraerNumero(this.participacionUnidad);
-    } else if (this.rangoDesde && this.rangoHasta) {
+    } else if (
+      isParticipationInputComplete(this.rangoDesde) &&
+      isParticipationInputComplete(this.rangoHasta)
+    ) {
       desde = this.extraerNumero(this.rangoDesde);
       hasta = this.extraerNumero(this.rangoHasta);
+      if (setPrefixKey(this.rangoDesde) !== setPrefixKey(this.rangoHasta)) {
+        await this.mostrarAlerta('Error', 'El rango debe pertenecer al mismo set.');
+        return;
+      }
       if (desde > hasta) {
         await this.mostrarAlerta('Error', 'El rango desde no puede ser mayor que hasta.');
         return;
       }
     } else {
-      await this.mostrarAlerta('Error', 'Indica participación o rango.');
+      await this.mostrarAlerta('Error', 'Indica la participación completa (ej. 01/00001).');
       return;
     }
 

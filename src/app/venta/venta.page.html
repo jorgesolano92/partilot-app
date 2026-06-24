@@ -1,11 +1,14 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
+<ion-header [translucent]="false" class="venta-header">
+  <ion-toolbar class="venta-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button *ngIf="!showEntitySelection && !showLotteriesList && !showVentaView"></ion-back-button>
+      <ion-back-button *ngIf="!showEntitySelection && !showLotteriesList && !showVentaView && !showReserveSelection"></ion-back-button>
       <ion-button *ngIf="showLotteriesList && !showEntitySelection && entities.length > 1" fill="clear" (click)="backToEntities()">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button *ngIf="showVentaView && !showEntitySelection && !showLotteriesList" fill="clear" (click)="backToLotteries()">
+      <ion-button *ngIf="showReserveSelection && !showEntitySelection" fill="clear" (click)="backToLotteries()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="showVentaView && !showEntitySelection && !showLotteriesList && !showReserveSelection" fill="clear" (click)="reservesForSelection.length > 1 ? backToReserveSelection() : backToLotteries()">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -119,6 +122,27 @@
     </div>
   </div>
 
+  <!-- Vista 2b: Selección de Reserva (si hay más de una con stock asignado) -->
+  <div class="venta-container" *ngIf="isVendedor && showReserveSelection && !showVentaView && !loading">
+    <div class="section-header">
+      <h1 class="section-title">Reserva</h1>
+      <p class="section-subtitle">Selecciona la reserva para la venta</p>
+      <div class="participaciones-head-sorteo" *ngIf="selectedLottery">Sorteo: {{ selectedLottery.name }}</div>
+    </div>
+    <div class="lotteries-list">
+      <div class="lottery-card" *ngFor="let reserve of reservesForSelection" (click)="selectReserve(reserve)">
+        <div class="lottery-header">
+          <div class="lottery-info">
+            <div class="lottery-title">Nº reservado: {{ getReserveNumbersLabel(reserve) || '—' }}</div>
+            <div class="lottery-subtitle" *ngIf="reserve.sets?.length">
+              {{ reserve.sets.length }} set(s) disponibles
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Vista 3: Venta (Física o Digital) -->
   <div class="venta-container" *ngIf="isVendedor && showVentaView && !loading">
     <!-- Botón para volver a sorteos -->
@@ -181,39 +205,37 @@
       <!-- Participaciones Físicas -->
       <div class="participaciones-fisicas" *ngIf="tipoParticipacion === 'fisicas'">
         <div class="selector-section" *ngIf="sets.length > 0">
-          <ion-label class="input-label small-range-label">Set</ion-label>
-          <ion-item class="input-item">
-            <ion-select [(ngModel)]="setSeleccionado" (ionChange)="onSetChange()" name="set" placeholder="Selecciona set">
-              <ion-select-option *ngFor="let s of sets" [value]="s">
-                {{ getSetOptionLabel(s, 'fisicas') }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
-          <p class="disponibilidad-fisica" *ngIf="setSeleccionado">
-            Disponibles para vender: <strong>{{ disponibilidad }}</strong>
-            <span *ngIf="disponibilidad === 0"> — pide al gestor que te asigne participaciones en este set.</span>
+          <p class="disponibilidad-fisica info-reserva" *ngIf="getReservaNumbersDisplay()">
+            Nº reservado: <strong>{{ getReservaNumbersDisplay() }}</strong>
           </p>
+          <p class="disponibilidad-fisica" *ngIf="setSeleccionado && !setInputError">
+            Disponibles para vender: <strong>{{ disponibilidad }}</strong>
+          </p>
+          <p class="set-input-error" *ngIf="setInputError">{{ setInputError }}</p>
         </div>
         <div *ngIf="sets.length === 0 && selectedLottery" class="no-sets-message">
           <ion-label class="input-label">No hay sets físicos disponibles para este sorteo</ion-label>
         </div>
 
-        <div class="participacion-unidad" *ngIf="setSeleccionado && disponibilidad > 0">
+        <div class="participacion-unidad" *ngIf="sets.length > 0">
           <div class="unidad-row">
             <div class="group-heading group-heading-inline">
               <div class="group-heading-main">Participación</div>
               <div class="group-heading-sub">Por Unidad</div>
             </div>
             <ion-item class="input-item" style="margin-bottom: 0;">
-              <ion-input 
-                [(ngModel)]="participacionUnidad"
-                placeholder="1/0001">
+              <ion-input
+                [value]="participacionUnidad"
+                (ionInput)="onParticipacionUnidadInput($event)"
+                inputmode="numeric"
+                maxlength="8"
+                placeholder="01/00001">
               </ion-input>
             </ion-item>
           </div>
         </div>
 
-        <div class="participaciones-rango" *ngIf="setSeleccionado && disponibilidad > 0">
+        <div class="participaciones-rango" *ngIf="sets.length > 0">
           <div class="group-heading">
             <div class="group-heading-main">Participaciones</div>
             <div class="group-heading-sub">Por Rango</div>
@@ -222,18 +244,24 @@
             <div class="rango-field">
               <ion-label class="input-label small-range-label">desde</ion-label>
               <ion-item class="input-item">
-                <ion-input 
-                  [(ngModel)]="rangoDesde"
-                  placeholder="1/0001">
+                <ion-input
+                  [value]="rangoDesde"
+                  (ionInput)="onRangoDesdeInput($event)"
+                  inputmode="numeric"
+                  maxlength="8"
+                  placeholder="01/00001">
                 </ion-input>
               </ion-item>
             </div>
             <div class="rango-field">
               <ion-label class="input-label small-range-label">hasta</ion-label>
               <ion-item class="input-item">
-                <ion-input 
-                  [(ngModel)]="rangoHasta"
-                  placeholder="1/0005">
+                <ion-input
+                  [value]="rangoHasta"
+                  (ionInput)="onRangoHastaInput($event)"
+                  inputmode="numeric"
+                  maxlength="8"
+                  placeholder="01/00005">
                 </ion-input>
               </ion-item>
             </div>
@@ -241,25 +269,39 @@
         </div>
       </div>
 
-      <!-- Participaciones Digitales (por set; sorteo ya elegido arriba) -->
+      <!-- Participaciones Digitales -->
       <div class="participaciones-digitales" *ngIf="tipoParticipacion === 'digitales'">
-        <div class="selector-section" *ngIf="sets.length > 0">
-          <ion-label class="input-label small-range-label">Set</ion-label>
-          <ion-item class="input-item">
-            <ion-select [(ngModel)]="setSeleccionado" (ionChange)="onSetChange()" name="setDigital" placeholder="Selecciona set">
-              <ion-select-option *ngFor="let s of sets" [value]="s">
-                {{ getSetOptionLabel(s, 'digitales') }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
+        <div class="selector-section digital-reserve-section" *ngIf="getReservesDigitalesDisponibles().length > 0">
+          <ng-container *ngIf="getReservesDigitalesDisponibles().length > 1; else singleDigitalReserve">
+            <p class="input-label digital-reserve-label">Reserva</p>
+            <ion-item class="input-item reserve-select-item" lines="none">
+              <ion-select
+                [(ngModel)]="reserveDigitalId"
+                (ionChange)="onDigitalReserveSelected($event.detail.value)"
+                interface="action-sheet"
+                placeholder="Selecciona la reserva"
+                cancelText="Cancelar">
+                <ion-select-option
+                  *ngFor="let reserve of getReservesDigitalesDisponibles()"
+                  [value]="reserve.id">
+                  Nº {{ getReserveNumbersLabel(reserve) }} ({{ getDigitalStockForReserve(reserve) }} disp.)
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </ng-container>
+          <ng-template #singleDigitalReserve>
+            <p class="disponibilidad-fisica info-reserva" *ngIf="getReservaNumbersDisplay()">
+              Nº reservado: <strong>{{ getReservaNumbersDisplay() }}</strong>
+            </p>
+          </ng-template>
         </div>
-        <div *ngIf="sets.length === 0 && selectedLottery" class="no-sets-message">
-          <ion-label class="input-label">No hay sets digitales con diseño para este sorteo</ion-label>
+        <div *ngIf="getReservesDigitalesDisponibles().length === 0 && selectedLottery" class="no-sets-message">
+          <ion-label class="input-label">No hay participaciones digitales con diseño para este sorteo</ion-label>
         </div>
-        <div class="no-sets-message" *ngIf="setSeleccionado && totalDigitalAvailable === 0" style="text-align: center; margin-bottom: 12px; font-style: italic; color: #6c757d;">
-          <ion-label class="input-label">No quedan participaciones disponibles en este set</ion-label>
+        <div class="no-sets-message" *ngIf="totalDigitalAvailable === 0" style="text-align: center; margin-bottom: 12px; font-style: italic; color: #6c757d;">
+          <ion-label class="input-label">No quedan participaciones digitales disponibles</ion-label>
         </div>
-        <div class="numero-participaciones-section" *ngIf="setSeleccionado && totalDigitalAvailable > 0">
+        <div class="numero-participaciones-section" *ngIf="totalDigitalAvailable > 0">
           <h3 class="counter-title">Número de Participaciones</h3>
           <div class="counter-controls">
             <ion-button 

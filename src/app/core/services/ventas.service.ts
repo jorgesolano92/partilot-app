@@ -67,14 +67,20 @@ export class VentasService {
    * Participaciones digitales disponibles: por set (asignadas al vendedor) o pool entidad+sorteo.
    */
   getTotalDigitalAvailable(
-    params: { set_id: number } | { entity_id: number; lottery_id: number }
+    params:
+      | { set_id: number }
+      | { entity_id: number; lottery_id: number; reserve_id: number }
   ): Observable<any> {
     if ('set_id' in params) {
       return this.http.get(`${this.apiUrl}/sellers/me/digital-available?set_id=${params.set_id}`);
     }
-    return this.http.get(
-      `${this.apiUrl}/sellers/me/digital-available?entity_id=${params.entity_id}&lottery_id=${params.lottery_id}`
-    );
+    return this.http.get(`${this.apiUrl}/sellers/me/digital-available`, {
+      params: {
+        entity_id: String(params.entity_id),
+        lottery_id: String(params.lottery_id),
+        reserve_id: String(params.reserve_id),
+      },
+    });
   }
 
   /**
@@ -83,7 +89,14 @@ export class VentasService {
   sellDigital(
     params:
       | { set_id: number; quantity: number; buyer_email: string; payment_method?: string | null }
-      | { entity_id: number; lottery_id: number; quantity: number; buyer_email: string; payment_method?: string | null }
+      | {
+          entity_id: number;
+          lottery_id: number;
+          reserve_id?: number;
+          quantity: number;
+          buyer_email: string;
+          payment_method?: string | null;
+        }
   ): Observable<any> {
     const body: any = {
       quantity: params.quantity,
@@ -95,6 +108,9 @@ export class VentasService {
     } else {
       body.entity_id = params.entity_id;
       body.lottery_id = params.lottery_id;
+      if (params.reserve_id != null) {
+        body.reserve_id = params.reserve_id;
+      }
     }
     return this.http.post(`${this.apiUrl}/sales/digital`, body);
   }
@@ -115,6 +131,7 @@ export class VentasService {
       | {
           entity_id: number;
           lottery_id: number;
+          reserve_id?: number;
           quantity: number;
           buyer_email?: string;
           buyer_phone?: string;
@@ -134,6 +151,9 @@ export class VentasService {
     } else {
       body.entity_id = params.entity_id;
       body.lottery_id = params.lottery_id;
+      if (params.reserve_id != null) {
+        body.reserve_id = params.reserve_id;
+      }
     }
     return this.http.post(`${this.apiUrl}/sales/digital/pending`, body);
   }
