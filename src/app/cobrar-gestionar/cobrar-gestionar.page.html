@@ -31,7 +31,7 @@
     <!-- Botones de acción -->
     <div class="actions-section">
       <ion-button 
-        class="action-button cobrar-button" 
+        class="action-button cobrar-button" style="font-size: 12px !important;"
         [class.active]="modoCobro"
         (click)="modoCobro = true; modoDonacion = false">
         <ion-icon name="hand-left-outline" slot="start"></ion-icon>
@@ -39,7 +39,7 @@
       </ion-button>
       
       <ion-button 
-        class="action-button donar-button" 
+        class="action-button donar-button" style="font-size: 12px !important;"
         [class.active]="modoDonacion"
         (click)="iniciarDonacion()">
         <ion-icon name="gift-outline" slot="start"></ion-icon>
@@ -249,7 +249,7 @@
           class="cobrar-button-modal" 
           expand="block"
           (click)="procesarCobro()">
-          Cobrar
+          Continuar
         </ion-button>
       </div>
     </div>
@@ -378,3 +378,64 @@
     </div>
   </ng-template>
 </ion-modal>
+
+<!-- Modal L6: confirmación irreversible de cobro -->
+<div class="modal-overlay bottom-sheet" *ngIf="mostrarModalConfirmacionCobro" (click)="cerrarModalConfirmacionCobro()">
+  <div class="modal-container bottom-sheet-content legal-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ legalConfig?.prize_collection?.title || 'Confirmar cobro de premio' }}</h2>
+      <ion-button fill="clear" class="close-button" (click)="cerrarModalConfirmacionCobro()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="modal-content">
+      <p class="legal-warning">{{ legalConfig?.prize_collection?.irreversibility_warning }}</p>
+      <p><strong>Importe:</strong> €{{ importeTotal | number:'1.2-2' }}</p>
+      <p><strong>Destino:</strong> {{ ibanResumen }}</p>
+      <button type="button" class="link-legal-inline" (click)="abrirDocumentoCobro()">
+        {{ legalConfig?.prize_collection?.legal_link_label || 'Ver condiciones de cobro' }}
+      </button>
+      <ion-button expand="block" [class.confirm-step-two]="cobroConfirmPaso === 1" (click)="solicitarConfirmacionCobro()">
+        {{ cobroConfirmLabel }}
+      </ion-button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal L7: confirmación donación -->
+<div class="modal-overlay bottom-sheet" *ngIf="mostrarModalConfirmacionDonacion" (click)="cerrarModalConfirmacionDonacion()">
+  <div class="modal-container bottom-sheet-content legal-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ legalConfig?.prize_donation?.title || 'Confirmar donación de premio' }}</h2>
+      <ion-button fill="clear" class="close-button" (click)="cerrarModalConfirmacionDonacion()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="modal-content">
+      <p class="legal-warning" *ngIf="importeDonacion > 0">{{ avisoDonacionEntidad }}</p>
+      <p *ngIf="importeDonacion <= 0 && importeCodigo > 0">
+        {{ legalConfig?.prize_collection?.irreversibility_warning }}
+      </p>
+      <p *ngIf="importeDonacion > 0"><strong>Donación:</strong> €{{ importeDonacion | number:'1.2-2' }}</p>
+      <p *ngIf="importeCodigo > 0"><strong>Código recarga:</strong> €{{ importeCodigo | number:'1.2-2' }}</p>
+
+      <div *ngIf="importeDonacion > 0" class="certificado-block">
+        <p>{{ legalConfig?.prize_donation?.fiscal_certificate_question }}</p>
+        <ion-item lines="none">
+          <ion-checkbox slot="start" [(ngModel)]="certificadoFiscal"></ion-checkbox>
+          <ion-label>Deseo recibir certificado fiscal</ion-label>
+        </ion-item>
+        <div *ngIf="certificadoFiscal" class="datos-fiscales">
+          <p class="small">{{ avisoRgpdDonacion }}</p>
+          <ion-input [(ngModel)]="datosPersonales.nombre" placeholder="Nombre"></ion-input>
+          <ion-input [(ngModel)]="datosPersonales.apellidos" placeholder="Apellidos"></ion-input>
+          <ion-input [(ngModel)]="datosPersonales.nif" placeholder="NIF/NIE"></ion-input>
+        </div>
+      </div>
+
+      <ion-button expand="block" [class.confirm-step-two]="donacionConfirmPaso === 1" (click)="solicitarConfirmacionDonacion()">
+        {{ importeDonacion > 0 ? donacionConfirmLabel : (legalConfig?.prize_collection?.confirm_label || 'Confirmar') }}
+      </ion-button>
+    </div>
+  </div>
+</div>

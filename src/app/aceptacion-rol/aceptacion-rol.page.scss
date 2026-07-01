@@ -1,0 +1,129 @@
+.aceptacion-content {
+  --background: #f8f8f8;
+}
+
+.aceptacion-container {
+  min-height: 100%;
+  padding: 32px 24px 40px;
+  background: #f8f8f8;
+  box-sizing: border-box;
+}
+
+.brand-section {
+  text-align: center;
+  margin-bottom: 20px;
+
+  .logo-image {
+    display: block;
+    margin: 0 auto 16px;
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(0) saturate(100%);
+    opacity: 0.85;
+  }
+
+  .welcome-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 8px;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+  }
+}
+
+.context-block {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #e8e8e8;
+
+  p {
+    margin: 0 0 6px;
+    font-size: 0.9rem;
+    color: #444;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.bullets-list {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  color: #444;
+  font-size: 0.9rem;
+  line-height: 1.45;
+
+  li {
+    margin-bottom: 8px;
+  }
+}
+
+.link-legal {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 20px;
+  color: #e67e22;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.legal-block {
+  margin-bottom: 20px;
+}
+
+.checkbox-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox-input {
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.checkbox-label {
+  font-size: 0.88rem;
+  color: #444;
+  line-height: 1.4;
+}
+
+.btn-accept {
+  --background: #198754;
+  --border-radius: 999px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.btn-reject {
+  --border-radius: 999px;
+  --color: #666;
+  font-weight: 600;
+}
+
+.loading-container,
+.error-state {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: #666;
+}

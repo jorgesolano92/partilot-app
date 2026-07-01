@@ -19,96 +19,33 @@
 
 <ion-content [fullscreen]="true" class="condiciones-content">
   <div class="condiciones-container">
-    <!-- Términos y Condiciones -->
-    <div class="seccion-card figma-card">
-      <h2>Términos y Condiciones de Uso</h2>
-      <p class="fecha-actualizacion">Última actualización: 17 de enero de 2024</p>
-      
-      <div class="contenido-seccion">
-        <h3>1. Aceptación de los Términos</h3>
-        <p>Al acceder y utilizar esta aplicación, aceptas cumplir con estos términos y condiciones de uso. Si no estás de acuerdo con alguna parte de estos términos, no debes utilizar la aplicación.</p>
+    <h1 class="page-title">Información legal</h1>
+    <p class="page-intro">Documentos oficiales de PARTILOT. Selecciona una pestaña para leer el contenido completo.</p>
 
-        <h3>2. Uso de la Aplicación</h3>
-        <p>Esta aplicación está destinada únicamente para usuarios mayores de 18 años. Debes utilizar la aplicación de manera legal y responsable. No está permitido:</p>
-        <ul>
-          <li>Utilizar la aplicación para actividades ilegales</li>
-          <li>Intentar acceder a áreas restringidas de la aplicación</li>
-          <li>Interferir con el funcionamiento de la aplicación</li>
-          <li>Compartir tu cuenta con terceros</li>
-        </ul>
-
-        <h3>3. Participación en Sorteos</h3>
-        <p>Al participar en los sorteos, aceptas que:</p>
-        <ul>
-          <li>Las participaciones no son reembolsables una vez confirmada la compra</li>
-          <li>Los resultados de los sorteos son finales y vinculantes</li>
-          <li>Debes cumplir con los plazos establecidos para el cobro de premios</li>
-          <li>La aplicación no se hace responsable por errores en la digitalización de boletos físicos</li>
-        </ul>
-
-        <h3>4. Cuentas de Usuario</h3>
-        <p>Eres responsable de mantener la confidencialidad de tu cuenta y contraseña. Debes notificarnos inmediatamente si sospechas que tu cuenta ha sido comprometida.</p>
-
-        <h3>5. Pagos y Reembolsos</h3>
-        <p>Los pagos se procesan de forma segura a través de nuestros proveedores de pago autorizados. Los reembolsos solo se procesan en casos excepcionales y de acuerdo con nuestras políticas.</p>
-
-        <h3>6. Propiedad Intelectual</h3>
-        <p>Todo el contenido de la aplicación, incluyendo diseño, textos, gráficos y logos, es propiedad de la empresa y está protegido por leyes de propiedad intelectual.</p>
-      </div>
+    <div class="legal-tabs" *ngIf="documents.length">
+      <button
+        type="button"
+        class="legal-tab"
+        *ngFor="let doc of documents"
+        [class.active]="doc.slug === selectedSlug"
+        (click)="selectDocument(doc.slug)">
+        {{ doc.title }}
+      </button>
     </div>
 
-    <!-- Política de Privacidad -->
-    <div class="seccion-card figma-card">
-      <h2>Política de Privacidad</h2>
-      
-      <div class="contenido-seccion">
-        <h3>1. Información que Recopilamos</h3>
-        <p>Recopilamos la siguiente información:</p>
-        <ul>
-          <li>Información personal (nombre, correo electrónico, fecha de nacimiento)</li>
-          <li>Datos de pago procesados por nuestros proveedores de pago</li>
-          <li>Información de uso de la aplicación</li>
-          <li>Fotos de participaciones que digitalices</li>
-        </ul>
-
-        <h3>2. Uso de la Información</h3>
-        <p>Utilizamos tu información para:</p>
-        <ul>
-          <li>Procesar tus transacciones y participaciones</li>
-          <li>Enviarte notificaciones sobre sorteos y premios</li>
-          <li>Mejorar nuestros servicios</li>
-          <li>Cumplir con obligaciones legales</li>
-        </ul>
-
-        <h3>3. Compartir Información</h3>
-        <p>No vendemos tu información personal. Solo compartimos información con:</p>
-        <ul>
-          <li>Proveedores de servicios de pago necesarios para procesar transacciones</li>
-          <li>Autoridades cuando sea requerido por ley</li>
-        </ul>
-
-        <h3>4. Seguridad</h3>
-        <p>Implementamos medidas de seguridad técnicas y organizativas para proteger tu información personal. Sin embargo, ningún sistema es completamente seguro.</p>
-
-        <h3>5. Tus Derechos</h3>
-        <p>Tienes derecho a:</p>
-        <ul>
-          <li>Acceder a tu información personal</li>
-          <li>Corregir información inexacta</li>
-          <li>Solicitar la eliminación de tu cuenta</li>
-          <li>Oponerte al procesamiento de tus datos</li>
-        </ul>
-      </div>
+    <div class="loading-wrap" *ngIf="loading">
+      <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- Contacto -->
-    <div class="contacto-card figma-card">
-      <h2>Contacto</h2>
-      <p>Si tienes preguntas sobre estos términos o nuestra política de privacidad, puedes contactarnos:</p>
-      <div class="contacto-info">
-        <p><strong>Email:</strong> soporte&#64;loteria.com</p>
-        <p><strong>Teléfono:</strong> +34 900 000 000</p>
-      </div>
+    <p class="error-text" *ngIf="!loading && error">{{ error }}</p>
+
+    <div class="iframe-card figma-card" *ngIf="!loading && safeUrl">
+      <iframe
+        class="legal-iframe"
+        [src]="safeUrl"
+        [title]="selectedSlug"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
     </div>
   </div>
 </ion-content>

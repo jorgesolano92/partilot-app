@@ -35,80 +35,42 @@
         </button>
       </div>
 
-      <div class="input-wrap">
-        <ion-icon name="call-outline" class="input-icon"></ion-icon>
-        <ion-input
-          type="tel"
-          [(ngModel)]="phone"
-          name="phone"
-          placeholder="Teléfono móvil (opcional)"
-          inputmode="tel"
-          class="input-field">
-        </ion-input>
-      </div>
-
-      <div class="sms-verify-block" *ngIf="smsVerificationEnabled && phone.trim()">
-        <p class="sms-hint">Si indicas teléfono, te enviaremos un SMS para confirmarlo.</p>
-        <ion-button
-          type="button"
-          fill="outline"
-          expand="block"
-          class="btn-sms"
-          [disabled]="smsSending || smsCooldown > 0 || !phone.trim()"
-          (click)="enviarCodigoSms()">
-          <ion-spinner *ngIf="smsSending" name="crescent"></ion-spinner>
-          <span *ngIf="!smsSending && smsCooldown <= 0">Enviar código por SMS</span>
-          <span *ngIf="!smsSending && smsCooldown > 0">Reenviar en {{ smsCooldown }} s</span>
-        </ion-button>
-        <div class="input-wrap sms-code-wrap">
-          <ion-icon name="chatbox-outline" class="input-icon"></ion-icon>
-          <ion-input
-            type="text"
-            [(ngModel)]="smsCode"
-            name="smsCode"
-            [placeholder]="'Código SMS (' + smsCodeLength + ' dígitos)'"
-            inputmode="numeric"
-            [maxlength]="smsCodeLength"
-            class="input-field">
-          </ion-input>
-        </div>
-      </div>
-
-      <div class="input-wrap">
-        <ion-icon name="key-outline" class="input-icon"></ion-icon>
-        <ion-input
-          type="text"
-          [(ngModel)]="linkCode"
-          name="linkCode"
-          placeholder="Código de vinculación (opcional)"
-          autocapitalize="characters"
-          class="input-field">
-        </ion-input>
-      </div>
-      <p class="link-code-hint">Si compraste participaciones digitales y el email no llegó, pide al vendedor el código o introdúcelo después en Mi cartera.</p>
-
-      <div class="input-wrap">
+      <div class="input-wrap input-wrap-date" [class.has-value]="!!fechaNacimiento">
         <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
         <ion-input
           type="date"
           [(ngModel)]="fechaNacimiento"
           name="fechaNacimiento"
-          placeholder="Fecha de Nacimiento"
-          class="input-field"
+          class="input-field input-field-date"
           required>
         </ion-input>
+        <span class="date-placeholder" *ngIf="!fechaNacimiento">Fecha de nacimiento</span>
       </div>
 
-      <label class="checkbox-wrap">
-        <input type="checkbox" [(ngModel)]="aceptarCondiciones" name="aceptarCondiciones" class="checkbox-input">
-        <span class="checkbox-label">Acepto las <button type="button" class="link-inline" (click)="verCondiciones(); $event.preventDefault()">Condiciones de uso</button></span>
-      </label>
+      <div class="legal-block">
+        <label class="checkbox-wrap">
+          <input
+            type="checkbox"
+            [(ngModel)]="aceptarCondiciones"
+            name="aceptarCondiciones"
+            class="checkbox-input"
+            [disabled]="!legalConfigLoaded">
+          <span class="checkbox-label">{{ registrationLabel }}</span>
+        </label>
+        <div class="legal-links" *ngIf="legalConfigLoaded">
+          <button type="button" class="link-inline" (click)="abrirDocumento('terminos-y-condiciones')">Términos</button>
+          <span class="legal-sep">·</span>
+          <button type="button" class="link-inline" (click)="abrirDocumento('politica-de-privacidad')">Privacidad</button>
+          <span class="legal-sep">·</span>
+          <button type="button" class="link-inline" (click)="abrirDocumento('marco-legal')">Marco legal</button>
+        </div>
+      </div>
 
       <div class="loading-inline" *ngIf="loading">
         <ion-spinner name="crescent"></ion-spinner>
         <span>Creando cuenta...</span>
       </div>
-      <ion-button type="submit" class="btn-registro" [disabled]="loading" expand="block">
+      <ion-button type="submit" class="btn-registro" [disabled]="!canSubmit" expand="block">
         Registrate
       </ion-button>
     </form>

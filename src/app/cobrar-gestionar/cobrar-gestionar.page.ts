@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { AuthService } from '../core/services/auth.service';
 import { CarteraService } from '../core/services/cartera.service';
+import { LegalService, LegalClientConfig } from '../core/services/legal.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -24,6 +25,12 @@ export class CobrarGestionarPage implements OnInit {
   mostrarModalDatos = false;
   mostrarModalCuenta = false;
   mostrarModalConfigDonacion = false;
+  mostrarModalConfirmacionCobro = false;
+  mostrarModalConfirmacionDonacion = false;
+  cobroConfirmPaso = 0;
+  donacionConfirmPaso = 0;
+  certificadoFiscal = false;
+  legalConfig: LegalClientConfig | null = null;
   mostrarMensajeExito = false;
   mostrarMensajeCodigo = false; // Segunda alerta para código de recarga
   
@@ -52,11 +59,15 @@ export class CobrarGestionarPage implements OnInit {
     private router: Router,
     private alertModal: AlertModalService,
     private authService: AuthService,
-    private carteraService: CarteraService
+    private carteraService: CarteraService,
+    private legalService: LegalService
   ) { }
 
   ngOnInit() {
     this.loadParticipaciones();
+    this.legalService.getClientConfig().subscribe((cfg) => {
+      this.legalConfig = cfg;
+    });
   }
 
   ionViewWillEnter() {
@@ -424,7 +435,58 @@ export class CobrarGestionarPage implements OnInit {
   }
 
   async procesarCobro() {
-    // Añadir "ES" al inicio si no está presente (ya que está como addon visual)
+    const ibanSinEspacios = this.ibanFormateado.replace(/\s/g, '').trim();
+    const ibanLimpio = ibanSinEspacios.startsWith('ES') ? ibanSinEspacios : 'ES' + ibanSinEspacios;
+    if (!ibanLimpio || ibanLimpio.length !== 24) {
+      await this.alertModal.show('IBAN incompleto', 'Introduce los 22 dígitos del número de cuenta (ES está incluido).');
+      return;
+    }
+    if (!this.validarIbanEspanol(ibanLimpio)) {
+      await this.alertModal.show('IBAN no válido', 'El IBAN no es correcto. Comprueba los dígitos de control.');
+      return;
+    }
+
+    this.cobroConfirmPaso = 0;
+    this.mostrarModalCuenta = false;
+    this.mostrarModalConfirmacionCobro = true;
+  }
+
+  cerrarModalConfirmacionCobro() {
+    this.mostrarModalConfirmacionCobro = false;
+    this.cobroConfirmPaso = 0;
+    this.mostrarModalCuenta = true;
+  }
+
+  get cobroConfirmLabel(): string {
+    const cfg = this.legalConfig?.prize_collection;
+    if (this.cobroConfirmPaso === 0) {
+      return cfg?.confirm_label || 'Confirmar cobro';
+    }
+    return cfg?.confirm_again_label || 'Pulsa de nuevo para confirmar';
+  }
+
+  get ibanResumen(): string {
+    const raw = (this.ibanFormateado || '').replace(/\s/g, '');
+    if (raw.length < 4) {
+      return 'ES ****';
+    }
+    return `ES **** **** **** ${raw.slice(-4)}`;
+  }
+
+  abrirDocumentoCobro(): void {
+    const slug = this.legalConfig?.prize_collection?.legal_document_slug || 'terminos-y-condiciones';
+    void this.router.navigate(['/documento-legal'], { queryParams: { slug } });
+  }
+
+  solicitarConfirmacionCobro(): void {
+    if (this.cobroConfirmPaso === 0) {
+      this.cobroConfirmPaso = 1;
+      return;
+    }
+    void this.ejecutarCobroDefinitivo();
+  }
+
+  private async ejecutarCobroDefinitivo() {
     const ibanSinEspacios = this.ibanFormateado.replace(/\s/g, '').trim();
     const ibanLimpio = ibanSinEspacios.startsWith('ES') ? ibanSinEspacios : 'ES' + ibanSinEspacios;
     if (!ibanLimpio || ibanLimpio.length !== 24) {
@@ -443,12 +505,12 @@ export class CobrarGestionarPage implements OnInit {
       apellidos: this.datosPersonales.apellidos.trim(),
       nif: this.datosPersonales.nif.trim().toUpperCase(),
       iban: ibanLimpio,
-      importe_total: this.importeTotal
+      importe_total: this.importeTotal,
+      confirmacion_cobro_irreversible: true,
     }).subscribe({
-      next: (res) => {
-        // Cerrar el modal de IBAN
-        this.mostrarModalCuenta = false;
-        this.ibanFormateado = '';
+      next: () => {
+        this.mostrarModalConfirmacionCobro = false;
+        this.cobroConfirmPaso = 0;
         this.tipoMensaje = 'cobro';
         this.resetSeleccion();
         this.loadParticipaciones();
@@ -486,14 +548,65 @@ export class CobrarGestionarPage implements OnInit {
 
   async procesarDonacion() {
     this.mostrarModalConfigDonacion = false;
-    
-    // Si se dona algo, pedir datos personales (opcionales)
-    if (this.importeDonacion > 0) {
-      this.abrirModalDatos();
+    if (this.participacionesSeleccionadas.size === 0) {
+      await this.alertModal.show('Selección requerida', 'Por favor, selecciona al menos una participación para donar.');
       return;
     }
-    
-    // Si solo se genera código, procesar directamente sin pedir datos
+    this.donacionConfirmPaso = 0;
+    this.certificadoFiscal = false;
+    if (this.importeDonacion > 0) {
+      this.cargarDatosPersonalesDesdeUsuario();
+      this.mostrarModalConfirmacionDonacion = true;
+      return;
+    }
+    this.mostrarModalConfirmacionDonacion = true;
+  }
+
+  cerrarModalConfirmacionDonacion() {
+    this.mostrarModalConfirmacionDonacion = false;
+    this.donacionConfirmPaso = 0;
+  }
+
+  get avisoDonacionEntidad(): string {
+    const tpl = this.legalConfig?.prize_donation?.notice_template
+      || 'El importe donado será transferido íntegramente a :entity_name. La donación es irreversible.';
+    return tpl.replace(':entity_name', this.entidadDeSeleccion || 'la entidad');
+  }
+
+  get avisoRgpdDonacion(): string {
+    const tpl = this.legalConfig?.prize_donation?.rgpd_notice_template
+      || 'Tus datos fiscales se transmitirán a :entity_name para la emisión del certificado.';
+    return tpl.replace(':entity_name', this.entidadDeSeleccion || 'la entidad');
+  }
+
+  get donacionConfirmLabel(): string {
+    const cfg = this.legalConfig?.prize_donation;
+    if (this.donacionConfirmPaso === 0) {
+      return cfg?.confirm_label || 'Confirmar donación';
+    }
+    return cfg?.confirm_again_label || 'Pulsa de nuevo para confirmar';
+  }
+
+  async solicitarConfirmacionDonacion(): Promise<void> {
+    if (this.importeDonacion > 0 && this.certificadoFiscal) {
+      if (!this.datosPersonales.nombre?.trim() || !this.datosPersonales.apellidos?.trim() || !this.datosPersonales.nif?.trim()) {
+        await this.alertModal.show('Datos incompletos', 'Para el certificado fiscal debes indicar nombre, apellidos y NIF/NIE.');
+        return;
+      }
+      const nifLimpio = this.datosPersonales.nif.trim().toUpperCase();
+      if (!this.validarDocumentoEspanol(nifLimpio)) {
+        await this.alertModal.show('NIF/NIE no válido', 'El documento indicado no es válido.');
+        return;
+      }
+    }
+
+    if (this.donacionConfirmPaso === 0) {
+      this.donacionConfirmPaso = 1;
+      return;
+    }
+
+    this.mostrarModalConfirmacionDonacion = false;
+    this.donacionConfirmPaso = 0;
     await this.procesarDonacionAPI();
   }
 
@@ -531,8 +644,14 @@ export class CobrarGestionarPage implements OnInit {
     const datosDonacion: any = {
       participation_ids: ids,
       importe_donacion: Math.round(this.importeDonacion * 100) / 100,
-      importe_codigo: Math.round(this.importeCodigo * 100) / 100
+      importe_codigo: Math.round(this.importeCodigo * 100) / 100,
+      confirmacion_operacion_irreversible: true,
     };
+
+    if (this.importeDonacion > 0) {
+      datosDonacion.confirmacion_donacion_irreversible = true;
+      datosDonacion.certificado_fiscal = this.certificadoFiscal;
+    }
 
     // Añadir datos personales solo si se proporcionaron
     if (this.datosPersonales.nombre && this.datosPersonales.nombre.trim()) {

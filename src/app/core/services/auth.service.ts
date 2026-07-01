@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { BiometricService } from './biometric.service';
 import { PushNotificationsService } from './push-notifications.service';
+import { LegalService } from './legal.service';
 
 export interface LoginResponse {
   success: boolean;
@@ -13,6 +14,7 @@ export interface LoginResponse {
   user?: any;
   seller?: any;
   manager?: any;
+  pending_role_invitations?: Array<{ key: string; type: string; screen_title: string }>;
   message?: string;
 }
 
@@ -26,7 +28,8 @@ export class AuthService {
     private http: HttpClient,
     private router: Router,
     private biometricService: BiometricService,
-    private pushNotificationsService: PushNotificationsService
+    private pushNotificationsService: PushNotificationsService,
+    private legalService: LegalService
   ) {}
 
   /** Login perfil Vendedor (solo cuentas con rol seller). */
@@ -84,7 +87,9 @@ export class AuthService {
     if (linkCode != null && linkCode.trim() !== '') {
       body['link_code'] = linkCode.trim();
     }
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/register`, body).pipe(
+    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/register`, body, {
+      headers: this.legalService.channelHeaders(),
+    }).pipe(
       tap(response => {
         if (response.success && response.token) {
           localStorage.setItem('token', response.token);

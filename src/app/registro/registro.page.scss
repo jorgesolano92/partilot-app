@@ -45,29 +45,6 @@
   }
 }
 
-.sms-verify-block {
-  margin-bottom: 8px;
-
-  .sms-hint {
-    font-size: 0.8rem;
-    color: #666;
-    margin: 0 0 10px 4px;
-    line-height: 1.35;
-  }
-
-  .btn-sms {
-    --border-color: #f59200;
-    --color: #f59200;
-    margin-bottom: 12px;
-    font-size: 0.9rem;
-    text-transform: none;
-  }
-
-  .sms-code-wrap {
-    margin-bottom: 16px;
-  }
-}
-
 .input-wrap {
   position: relative;
   display: flex;
@@ -117,11 +94,47 @@
   }
 }
 
+.input-wrap-date {
+  .date-placeholder {
+    position: absolute;
+    left: 44px;
+    right: 14px;
+    color: #999;
+    font-size: 0.95rem;
+    pointer-events: none;
+  }
+
+  .input-field-date {
+    --color: #333;
+
+    &::part(native) {
+      color: #333;
+    }
+  }
+
+  &:not(.has-value) .input-field-date::part(native) {
+    color: transparent;
+  }
+
+  &:not(.has-value) .input-field-date input::-webkit-datetime-edit {
+    color: transparent;
+  }
+
+  &.has-value .input-field-date::part(native),
+  .input-field-date:focus-within::part(native) {
+    color: #333;
+  }
+
+  .input-field-date:focus-within input::-webkit-datetime-edit {
+    color: #333;
+  }
+}
+
 .checkbox-wrap {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   cursor: pointer;
 
   .checkbox-input {
@@ -145,6 +158,34 @@
     font-size: inherit;
     text-decoration: underline;
     cursor: pointer;
+  }
+}
+
+.legal-block {
+  margin-bottom: 20px;
+}
+
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-left: 30px;
+  margin-bottom: 4px;
+
+  .link-inline {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #F49200;
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .legal-sep {
+    color: #999;
+    font-size: 0.85rem;
   }
 }
 
@@ -172,13 +213,6 @@
   border-radius: 25px;
   text-transform: none;
   margin-bottom: 20px;
-}
-
-.link-code-hint {
-  font-size: 0.8rem;
-  color: #666;
-  margin: -8px 0 12px 36px;
-  line-height: 1.35;
 }
 
 .footer-accede {

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { loggedInGuard } from './core/guards/logged-in.guard';
+import { roleAcceptanceGuard } from './core/guards/role-acceptance.guard';
 
 const routes: Routes = [
   {
@@ -24,7 +25,7 @@ const routes: Routes = [
   {
     path: 'tabs',
     loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule),
-    canActivate: [loggedInGuard]
+    canActivate: [loggedInGuard, roleAcceptanceGuard]
   },
   {
     path: 'digitalizar-participacion',
@@ -55,6 +56,15 @@ const routes: Routes = [
   {
     path: 'condiciones-legales',
     loadChildren: () => import('./condiciones-legales/condiciones-legales.module').then( m => m.CondicionesLegalesPageModule)
+  },
+  {
+    path: 'documento-legal',
+    loadChildren: () => import('./documento-legal/documento-legal.module').then(m => m.DocumentoLegalPageModule)
+  },
+  {
+    path: 'aceptacion-rol',
+    loadChildren: () => import('./aceptacion-rol/aceptacion-rol.module').then(m => m.AceptacionRolPageModule),
+    canActivate: [loggedInGuard]
   },
   {
     path: 'vendedor',

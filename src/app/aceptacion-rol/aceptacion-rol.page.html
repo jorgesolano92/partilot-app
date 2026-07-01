@@ -1,0 +1,55 @@
+<ion-content [fullscreen]="true" class="aceptacion-content">
+  <div class="aceptacion-container" *ngIf="!loading && invitation">
+    <div class="brand-section">
+      <img src="/assets/logo_menu.svg" alt="PARTILOT" class="logo-image">
+      <h1 class="welcome-title">{{ invitation.screen_title }}</h1>
+      <p class="welcome-subtitle" *ngIf="invitation.intro_sentence">{{ invitation.intro_sentence }}</p>
+    </div>
+
+    <div class="context-block" *ngIf="invitation.context?.entity_name">
+      <p><strong>Entidad:</strong> {{ invitation.context.entity_name }}</p>
+      <p *ngIf="invitation.context.administration_name">
+        <strong>Administración:</strong> {{ invitation.context.administration_name }}
+      </p>
+    </div>
+
+    <ul class="bullets-list">
+      <li *ngFor="let bullet of invitation.summary_bullets">{{ bullet }}</li>
+    </ul>
+
+    <button type="button" class="link-legal" (click)="abrirDocumentoLegal()">
+      Ver condiciones legales completas
+    </button>
+
+    <div class="legal-block">
+      <label class="checkbox-wrap">
+        <input
+          type="checkbox"
+          [(ngModel)]="aceptarTerminos"
+          class="checkbox-input"
+          [disabled]="submitting">
+        <span class="checkbox-label">
+          He leído las responsabilidades de este rol y deseo aceptar la invitación.
+        </span>
+      </label>
+    </div>
+
+    <ion-button expand="block" class="btn-accept" [disabled]="!canAccept" (click)="aceptar()">
+      {{ invitation.accept_label }}
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" class="btn-reject" [disabled]="submitting" (click)="rechazar()">
+      {{ invitation.reject_label }}
+    </ion-button>
+  </div>
+
+  <div class="loading-container" *ngIf="loading">
+    <ion-spinner></ion-spinner>
+    <p>Cargando invitación...</p>
+  </div>
+
+  <div class="error-state" *ngIf="!loading && (errorMsg || !invitation)">
+    <p>{{ errorMsg || 'No hay invitaciones pendientes.' }}</p>
+    <ion-button routerLink="/tabs/tab3">Continuar</ion-button>
+  </div>
+</ion-content>

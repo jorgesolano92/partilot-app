@@ -102,6 +102,7 @@ export class CarteraService {
     nif: string;
     iban: string;
     importe_total: number;
+    confirmacion_cobro_irreversible: boolean;
   }): Observable<{ success: boolean; message?: string; collected_count?: number; pending_verification?: boolean }> {
     return this.http.post<{ success: boolean; message?: string; collected_count?: number; pending_verification?: boolean }>(`${this.apiUrl}/wallet/cobro`, data);
   }
@@ -114,7 +115,10 @@ export class CarteraService {
     nombre?: string;
     apellidos?: string;
     nif?: string;
-  }): Observable<{ 
+    confirmacion_operacion_irreversible: boolean;
+    confirmacion_donacion_irreversible?: boolean;
+    certificado_fiscal?: boolean;
+  }): Observable<{
     success: boolean; 
     message?: string; 
     donation_id?: number;

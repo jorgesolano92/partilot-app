@@ -124,11 +124,11 @@ export class NotificacionDetallePage implements OnInit {
   }
 
   irGestionInvitacion(): void {
-    void this.router.navigate(['/tabs/vendedor-tab3']);
+    void this.router.navigate(['/aceptacion-rol']);
   }
 
   irCondicionesVendedor(): void {
-    void this.router.navigate(['/condiciones-legales']);
+    void this.router.navigate(['/aceptacion-rol']);
   }
 
   /** Kind API normalizado para iconos y botones (cobro_registrado → cobro). */

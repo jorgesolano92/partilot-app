@@ -1,0 +1,22 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/registro"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ title }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="documento-legal-content">
+  <div class="loading-wrap" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+  <p class="error-text" *ngIf="!loading && error">{{ error }}</p>
+  <iframe
+    *ngIf="!loading && safeUrl"
+    class="legal-iframe"
+    [src]="safeUrl"
+    title="{{ title }}"
+    referrerpolicy="no-referrer-when-downgrade">
+  </iframe>
+</ion-content>
