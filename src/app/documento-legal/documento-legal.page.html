@@ -7,16 +7,17 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="documento-legal-content">
+<ion-content [fullscreen]="true" [scrollY]="false" class="documento-legal-content">
+  <div class="iframe-shell" *ngIf="!loading && safeUrl">
+    <iframe
+      class="legal-iframe"
+      [src]="safeUrl"
+      title="{{ title }}"
+      referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
+  </div>
   <div class="loading-wrap" *ngIf="loading">
     <ion-spinner name="crescent"></ion-spinner>
   </div>
   <p class="error-text" *ngIf="!loading && error">{{ error }}</p>
-  <iframe
-    *ngIf="!loading && safeUrl"
-    class="legal-iframe"
-    [src]="safeUrl"
-    title="{{ title }}"
-    referrerpolicy="no-referrer-when-downgrade">
-  </iframe>
 </ion-content>

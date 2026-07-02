@@ -1,9 +1,17 @@
 .condiciones-content {
   --background: #F5F6F7;
+  --overflow: hidden;
 }
 
-.condiciones-container {
-  padding: 16px;
+.condiciones-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.condiciones-header {
+  flex: 0 0 auto;
+  padding: 16px 16px 8px;
 }
 
 .page-title {
@@ -14,7 +22,7 @@
 }
 
 .page-intro {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   color: #6c757d;
   font-size: 0.92rem;
   line-height: 1.5;
@@ -24,7 +32,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .legal-tab {
@@ -46,27 +54,32 @@
 .loading-wrap {
   display: flex;
   justify-content: center;
-  padding: 32px 0;
+  padding: 16px 0;
 }
 
 .error-text {
   color: #b42318;
   text-align: center;
-  padding: 16px 0;
+  padding: 8px 0;
 }
 
-.iframe-card {
-  background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  min-height: 70vh;
+.iframe-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 16px 16px;
 }
 
 .legal-iframe {
   width: 100%;
-  height: 70vh;
+  height: 100%;
   border: 0;
+  border-radius: 12px;
   background: #fff;
+  display: block;
+  pointer-events: auto;
+  touch-action: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .header-content .logo-image {

@@ -47,7 +47,14 @@ export class CondicionesLegalesPage implements OnInit {
       return;
     }
     this.error = '';
-    this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(doc.url);
+    const embedUrl = this.legalService.toSafeEmbedUrl(doc.url);
+    if (!embedUrl) {
+      this.error = 'Documento no disponible.';
+      this.safeUrl = null;
+      this.loading = false;
+      return;
+    }
+    this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     this.loading = false;
   }
 }

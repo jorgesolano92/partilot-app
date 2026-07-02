@@ -1,51 +1,53 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
-    </ion-buttons>
-    <ion-title>
-      <div class="header-content">
-        <img src="/assets/logo_menu.svg" alt="PARTILOT" class="logo-image">
-      </div>
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" routerLink="/tabs/notificaciones">
-        <ion-icon name="notifications-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-menu-button menu="main-menu" slot="end"></ion-menu-button>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content [fullscreen]="true" class="condiciones-content">
-  <div class="condiciones-container">
-    <h1 class="page-title">Información legal</h1>
-    <p class="page-intro">Documentos oficiales de PARTILOT. Selecciona una pestaña para leer el contenido completo.</p>
-
-    <div class="legal-tabs" *ngIf="documents.length">
-      <button
-        type="button"
-        class="legal-tab"
-        *ngFor="let doc of documents"
-        [class.active]="doc.slug === selectedSlug"
-        (click)="selectDocument(doc.slug)">
-        {{ doc.title }}
-      </button>
-    </div>
-
-    <div class="loading-wrap" *ngIf="loading">
-      <ion-spinner name="crescent"></ion-spinner>
-    </div>
-
-    <p class="error-text" *ngIf="!loading && error">{{ error }}</p>
-
-    <div class="iframe-card figma-card" *ngIf="!loading && safeUrl">
-      <iframe
-        class="legal-iframe"
-        [src]="safeUrl"
-        [title]="selectedSlug"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-    </div>
-  </div>
-</ion-content>
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="header-content">
+        <img src="/assets/logo_menu.svg" alt="PARTILOT" class="logo-image">
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" routerLink="/tabs/notificaciones">
+        <ion-icon name="notifications-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-menu-button menu="main-menu" slot="end"></ion-menu-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" [scrollY]="false" class="condiciones-content">
+  <div class="condiciones-layout">
+    <div class="condiciones-header">
+      <h1 class="page-title">Información legal</h1>
+      <p class="page-intro">Selecciona un documento para leer el contenido completo.</p>
+
+      <div class="legal-tabs" *ngIf="documents.length">
+        <button
+          type="button"
+          class="legal-tab"
+          *ngFor="let doc of documents"
+          [class.active]="doc.slug === selectedSlug"
+          (click)="selectDocument(doc.slug)">
+          {{ doc.title }}
+        </button>
+      </div>
+
+      <div class="loading-wrap" *ngIf="loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+
+      <p class="error-text" *ngIf="!loading && error">{{ error }}</p>
+    </div>
+
+    <div class="iframe-shell" *ngIf="!loading && safeUrl">
+      <iframe
+        class="legal-iframe"
+        [src]="safeUrl"
+        [title]="selectedSlug"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+  </div>
+</ion-content>

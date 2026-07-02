@@ -450,6 +450,31 @@ export class LegalService {
 
   }
 
+
+
+  /** URL para iframe en app: sin banner cookies y con padding adaptado. */
+  embedDocumentUrl(url: string): string {
+    if (!url) {
+      return url;
+    }
+    try {
+      const parsed = new URL(url);
+      parsed.searchParams.set('embed', '1');
+      return parsed.toString();
+    } catch {
+      const sep = url.includes('?') ? '&' : '?';
+      return `${url}${sep}embed=1`;
+    }
+  }
+
+
+
+  toSafeEmbedUrl(url: string): string | null {
+    if (!this.isAllowedDocumentUrl(url)) {
+      return null;
+    }
+    return this.embedDocumentUrl(url);
+  }
 }
 
 

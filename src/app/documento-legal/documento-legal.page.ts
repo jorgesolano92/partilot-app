@@ -26,7 +26,8 @@ export class DocumentoLegalPage implements OnInit {
     const directUrl = this.route.snapshot.queryParamMap.get('url');
 
     if (directUrl && this.legalService.isAllowedDocumentUrl(directUrl)) {
-      this.applyUrl(directUrl, this.route.snapshot.queryParamMap.get('title') || 'Documento legal');
+      const embedUrl = this.legalService.embedDocumentUrl(directUrl);
+      this.applyUrl(embedUrl, this.route.snapshot.queryParamMap.get('title') || 'Documento legal');
       return;
     }
 
@@ -43,7 +44,8 @@ export class DocumentoLegalPage implements OnInit {
         this.loading = false;
         return;
       }
-      this.applyUrl(doc.url, doc.title);
+      const embedUrl = this.legalService.embedDocumentUrl(doc.url);
+      this.applyUrl(embedUrl, doc.title);
     });
   }
 
