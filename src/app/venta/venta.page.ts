@@ -7,9 +7,11 @@ import { Capacitor } from '@capacitor/core';
 import { environment } from '../../environments/environment';
 import {
   formatParticipationInput,
+  extractParticipationNumber,
   hasSetPrefixComplete,
   isParticipationInputComplete,
   parseParticipationInput,
+  sameParticipationSet,
   setPrefixKey,
 } from '../core/utils/participation-input.util';
 
@@ -795,31 +797,58 @@ export class VentaPage implements OnInit {
       this.rangoHasta = '';
     }
     this.validateSetFromInputValue(formatted);
+    this.syncRangeSetValidation();
   }
 
   onRangoDesdeInput(event: CustomEvent) {
     const formatted = formatParticipationInput(String(event.detail?.value ?? ''));
+    this.participacionUnidad = '';
     this.rangoDesde = formatted;
-    if (formatted) {
-      this.participacionUnidad = '';
-    }
     this.validateSetFromInputValue(formatted);
+    this.syncRangeSetValidation();
   }
 
   onRangoHastaInput(event: CustomEvent) {
     const formatted = formatParticipationInput(String(event.detail?.value ?? ''));
+    this.participacionUnidad = '';
     this.rangoHasta = formatted;
-    if (formatted) {
+    this.validateSetFromInputValue(this.rangoDesde || formatted);
+    this.syncRangeSetValidation();
+  }
+
+  private readonly rangeSetErrorMessage = 'El rango debe pertenecer al mismo set.';
+
+  private usesRangeSale(): boolean {
+    return isParticipationInputComplete(this.rangoDesde)
+      && isParticipationInputComplete(this.rangoHasta);
+  }
+
+  private usesUnitSale(): boolean {
+    return !this.usesRangeSale() && isParticipationInputComplete(this.participacionUnidad);
+  }
+
+  private syncRangeSetValidation(): void {
+    const hasRangeInput = !!(this.rangoDesde?.trim() || this.rangoHasta?.trim());
+    if (hasRangeInput && this.participacionUnidad?.trim()) {
       this.participacionUnidad = '';
     }
-    const desdePrefix = setPrefixKey(this.rangoDesde);
-    const hastaPrefix = setPrefixKey(formatted);
-    if (desdePrefix && hastaPrefix && desdePrefix !== hastaPrefix) {
-      this.setInputError = 'El rango debe pertenecer al mismo set.';
+
+    if (!this.rangoDesde?.trim() || !this.rangoHasta?.trim()) {
+      this.clearRangeSetError();
       return;
     }
-    if (hasSetPrefixComplete(formatted)) {
-      this.validateSetFromInputValue(formatted);
+
+    if (!sameParticipationSet(this.rangoDesde, this.rangoHasta)) {
+      this.setInputError = this.rangeSetErrorMessage;
+      return;
+    }
+
+    this.clearRangeSetError();
+  }
+
+  private clearRangeSetError(): void {
+    if (this.setInputError === this.rangeSetErrorMessage) {
+      this.setInputError = '';
     }
   }
 
@@ -836,7 +865,8 @@ export class VentaPage implements OnInit {
       return;
     }
 
-    const setNumber = parseInt(prefix.slice(0, 2), 10);
+    const parsed = parseParticipationInput(value.trim());
+    const setNumber = parsed?.setNumber ?? parseInt(prefix, 10);
     const set = this.findPhysicalSetByNumber(setNumber);
     if (!set) {
       this.setInputError = `No tienes participaciones asignadas en el set ${String(setNumber).padStart(2, '0')}.`;
@@ -845,7 +875,9 @@ export class VentaPage implements OnInit {
       return;
     }
 
-    this.setInputError = '';
+    if (this.setInputError !== this.rangeSetErrorMessage) {
+      this.setInputError = '';
+    }
     this.validatedSetPrefix = prefix;
     this.setSeleccionado = set;
     this.infoSetReservado = this.getReservedNumbersLabel(set);
@@ -897,11 +929,8 @@ export class VentaPage implements OnInit {
       if (!this.setSeleccionado || this.disponibilidad <= 0 || this.setInputError) {
         return false;
       }
-      const unidadOk = isParticipationInputComplete(this.participacionUnidad);
-      const rangoOk =
-        isParticipationInputComplete(this.rangoDesde) &&
-        isParticipationInputComplete(this.rangoHasta) &&
-        setPrefixKey(this.rangoDesde) === setPrefixKey(this.rangoHasta);
+      const rangoOk = this.usesRangeSale() && sameParticipationSet(this.rangoDesde, this.rangoHasta);
+      const unidadOk = this.usesUnitSale();
       return unidadOk || rangoOk;
     }
     return this.totalDigitalAvailable > 0
@@ -912,27 +941,18 @@ export class VentaPage implements OnInit {
 
   calcularTotalParticipaciones(): number {
     if (this.tipoParticipacion === 'fisicas') {
-      if (this.participacionUnidad) {
-        return 1;
-      } else if (this.rangoDesde && this.rangoHasta) {
-        const desde = this.extraerNumero(this.rangoDesde);
-        const hasta = this.extraerNumero(this.rangoHasta);
+      if (this.usesRangeSale()) {
+        const desde = extractParticipationNumber(this.rangoDesde);
+        const hasta = extractParticipationNumber(this.rangoHasta);
         return hasta - desde + 1;
+      }
+      if (this.usesUnitSale()) {
+        return 1;
       }
       return 0;
     } else {
       return this.numeroParticipaciones;
     }
-  }
-
-  extraerNumero(participacion: string): number {
-    const n = parseInt(participacion, 10);
-    if (!isNaN(n)) return n;
-    const partes = participacion.split('/');
-    if (partes.length > 1) {
-      return parseInt(partes[1], 10) || 0;
-    }
-    return 0;
   }
 
   mostrarResumen() {
@@ -1209,22 +1229,19 @@ export class VentaPage implements OnInit {
     }
     let desde: number;
     let hasta: number;
-    if (isParticipationInputComplete(this.participacionUnidad)) {
-      desde = hasta = this.extraerNumero(this.participacionUnidad);
-    } else if (
-      isParticipationInputComplete(this.rangoDesde) &&
-      isParticipationInputComplete(this.rangoHasta)
-    ) {
-      desde = this.extraerNumero(this.rangoDesde);
-      hasta = this.extraerNumero(this.rangoHasta);
-      if (setPrefixKey(this.rangoDesde) !== setPrefixKey(this.rangoHasta)) {
-        await this.mostrarAlerta('Error', 'El rango debe pertenecer al mismo set.');
+    if (this.usesRangeSale()) {
+      desde = extractParticipationNumber(this.rangoDesde);
+      hasta = extractParticipationNumber(this.rangoHasta);
+      if (!sameParticipationSet(this.rangoDesde, this.rangoHasta)) {
+        await this.mostrarAlerta('Error', this.rangeSetErrorMessage);
         return;
       }
       if (desde > hasta) {
         await this.mostrarAlerta('Error', 'El rango desde no puede ser mayor que hasta.');
         return;
       }
+    } else if (this.usesUnitSale()) {
+      desde = hasta = extractParticipationNumber(this.participacionUnidad);
     } else {
       await this.mostrarAlerta('Error', 'Indica la participación completa (ej. 01/00001).');
       return;

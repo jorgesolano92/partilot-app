@@ -1,0 +1,57 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/perfil"></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="header-content">
+        <img src="/assets/logo_menu.svg" alt="PARTILOT" class="logo-image">
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="eliminar-content">
+  <div class="eliminar-container" *ngIf="!loading && status as s">
+    <h1 class="page-title">{{ s.ui.title }}</h1>
+
+    <div class="warning-card" *ngIf="!s.deletion_requested_at">
+      <p>{{ s.ui.main_warning }}</p>
+      <p>{{ s.ui.prizes_warning }}</p>
+    </div>
+
+    <div class="blocked-card" *ngIf="!s.can_request && !s.deletion_requested_at">
+      <p>{{ s.ui.blocked_message }}</p>
+      <p *ngIf="s.pending_prize_count > 0">
+        Participaciones premiadas pendientes: <strong>{{ s.pending_prize_count }}</strong>
+      </p>
+    </div>
+
+    <div class="scheduled-card" *ngIf="s.deletion_requested_at">
+      <p>{{ s.ui.scheduled_notice }}</p>
+    </div>
+
+    <div class="form-card figma-card" *ngIf="s.can_request">
+      <ion-item lines="full">
+        <ion-label position="stacked">{{ s.ui.email_confirm_label }}</ion-label>
+        <ion-input
+          type="email"
+          [(ngModel)]="emailConfirm"
+          autocomplete="off"
+          [placeholder]="userEmail">
+        </ion-input>
+      </ion-item>
+
+      <ion-button expand="block" color="danger" [disabled]="!canSubmit" (click)="submit()">
+        {{ s.ui.confirm_button }}
+      </ion-button>
+      <ion-button expand="block" fill="clear" (click)="cancel()">
+        {{ s.ui.cancel_button }}
+      </ion-button>
+    </div>
+  </div>
+
+  <div class="loading-wrap" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+</ion-content>

@@ -63,7 +63,7 @@
     </div>
 
     <!-- Botones de acción -->
-    <div class="actions-section">
+    <div class="actions-section" style="margin-bottom: 8px !important;">
       <ion-button 
         class="action-button digitalizar-button" 
         fill="outline"
@@ -191,7 +191,7 @@
               <span class="detalle-label">Cobro:</span>
               <span class="detalle-value detalle-message">{{ participacion.user_message }}</span>
             </div>
-            <div class="detalle-row" *ngIf="participacion.presencial_contact?.formatted && !participacion.is_digital && participacion.premio > 0">
+            <div class="detalle-row" *ngIf="muestraCobroPresencial(participacion)">
               <span class="detalle-label">Cobro presencial:</span>
               <span class="detalle-value detalle-message">{{ participacion.presencial_contact.formatted }}</span>
             </div>
@@ -199,7 +199,7 @@
               <span class="detalle-label">Almacén:</span>
               <span class="detalle-value detalle-message">{{ participacion.storage_message }}</span>
             </div>
-            <div class="detalle-row" *ngIf="participacion.presencial_orientative_prize">
+            <div class="detalle-row" *ngIf="participacion.presencial_orientative_prize && participacion.is_storage">
               <span class="detalle-label">Importe orientativo presencial:</span>
               <span class="detalle-value">€{{ participacion.presencial_orientative_prize | number:'1.2-2' }}</span>
             </div>
@@ -278,7 +278,7 @@
               <span class="detalle-label">Premio orientativo:</span>
               <span class="detalle-value">€{{ participacion.premio | number:'1.2-2' }}</span>
             </div>
-            <div class="detalle-row" *ngIf="participacion.presencial_contact?.formatted && participacion.premio > 0">
+            <div class="detalle-row" *ngIf="muestraCobroPresencial(participacion)">
               <span class="detalle-label">Cobro presencial:</span>
               <span class="detalle-value detalle-message">{{ participacion.presencial_contact.formatted }}</span>
             </div>

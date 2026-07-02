@@ -93,6 +93,10 @@ export class PerfilPage implements OnInit {
     this.router.navigate(['/condiciones-legales']);
   }
 
+  goToEliminarCuenta() {
+    this.router.navigate(['/eliminar-cuenta']);
+  }
+
   // Métodos para vendedor
   goToVendedor() {
     this.router.navigate(['/tabs/vendedor-tab3']);

@@ -131,7 +131,7 @@ export class DigitalizarParticipacionPage implements OnInit {
         this.loading = false;
         this.carteraService.notifyParticipacionesChanged();
         await this.mostrarAlerta('Listo', 'Participación digitalizada y añadida a tu cartera.');
-        this.router.navigate(['/tabs/tab1']);
+        this.reiniciarFlujo();
       },
       error: async (err) => {
         this.loading = false;
@@ -155,7 +155,7 @@ export class DigitalizarParticipacionPage implements OnInit {
         this.loading = false;
         this.carteraService.notifyParticipacionesChanged();
         await this.mostrarAlerta('Listo', 'Participación guardada en almacén.');
-        this.router.navigate(['/tabs/tab1']);
+        this.reiniciarFlujo();
       },
       error: async (err) => {
         this.loading = false;
@@ -177,12 +177,28 @@ export class DigitalizarParticipacionPage implements OnInit {
       this.paso = this.referenciaManual ? 'manual' : 'elegir';
       this.participacion = null;
       this.status = null;
+      this.confirmDigitalizeChecked = false;
+      this.confirmStorageChecked = false;
     } else if (this.paso === 'manual') {
       this.paso = 'elegir';
       this.referenciaManual = '';
     } else {
       this.router.navigate(['/tabs/tab1']);
     }
+  }
+
+  /** Vuelve al inicio del flujo para digitalizar otra participación. */
+  private reiniciarFlujo() {
+    this.participacion = null;
+    this.walletOptions = null;
+    this.digitalizationNotice = '';
+    this.storageNotice = '';
+    this.confirmDigitalizeChecked = false;
+    this.confirmStorageChecked = false;
+    this.status = null;
+    this.mensajeError = '';
+    this.referenciaManual = '';
+    this.paso = 'elegir';
   }
 
   cerrar() {

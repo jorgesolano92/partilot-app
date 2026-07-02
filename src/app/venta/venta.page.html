@@ -225,7 +225,7 @@
             </div>
             <ion-item class="input-item" style="margin-bottom: 0;">
               <ion-input
-                [value]="participacionUnidad"
+                [ngModel]="participacionUnidad"
                 (ionInput)="onParticipacionUnidadInput($event)"
                 inputmode="numeric"
                 maxlength="8"
@@ -245,7 +245,7 @@
               <ion-label class="input-label small-range-label">desde</ion-label>
               <ion-item class="input-item">
                 <ion-input
-                  [value]="rangoDesde"
+                  [ngModel]="rangoDesde"
                   (ionInput)="onRangoDesdeInput($event)"
                   inputmode="numeric"
                   maxlength="8"
@@ -257,7 +257,7 @@
               <ion-label class="input-label small-range-label">hasta</ion-label>
               <ion-item class="input-item">
                 <ion-input
-                  [value]="rangoHasta"
+                  [ngModel]="rangoHasta"
                   (ionInput)="onRangoHastaInput($event)"
                   inputmode="numeric"
                   maxlength="8"

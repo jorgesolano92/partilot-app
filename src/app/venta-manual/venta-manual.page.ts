@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { VentasService } from '../core/services/ventas.service';
 import { AuthService } from '../core/services/auth.service';
+import { extractParticipationNumber } from '../core/utils/participation-input.util';
 
 @Component({
   selector: 'app-venta-manual',
@@ -169,24 +170,14 @@ export class VentaManualPage implements OnInit {
         return 1;
       } else if (this.rangoDesde && this.rangoHasta) {
         // Extraer números del rango (ej: "1/0001" -> 1, "1/0005" -> 5)
-        const desde = this.extraerNumero(this.rangoDesde);
-        const hasta = this.extraerNumero(this.rangoHasta);
+        const desde = extractParticipationNumber(this.rangoDesde);
+        const hasta = extractParticipationNumber(this.rangoHasta);
         return hasta - desde + 1;
       }
       return 0;
     } else {
       return this.numeroParticipaciones;
     }
-  }
-
-  extraerNumero(participacion: string): number {
-    const n = parseInt(participacion, 10);
-    if (!isNaN(n)) return n;
-    const partes = participacion.split('/');
-    if (partes.length > 1) {
-      return parseInt(partes[1], 10) || 0;
-    }
-    return 0;
   }
 
   mostrarResumen() {
@@ -218,10 +209,10 @@ export class VentaManualPage implements OnInit {
     let desde: number;
     let hasta: number;
     if (this.participacionUnidad) {
-      desde = hasta = this.extraerNumero(this.participacionUnidad);
+      desde = hasta = extractParticipationNumber(this.participacionUnidad);
     } else if (this.rangoDesde && this.rangoHasta) {
-      desde = this.extraerNumero(this.rangoDesde);
-      hasta = this.extraerNumero(this.rangoHasta);
+      desde = extractParticipationNumber(this.rangoDesde);
+      hasta = extractParticipationNumber(this.rangoHasta);
       if (desde > hasta) {
         await this.mostrarAlerta('Error', 'El rango desde no puede ser mayor que hasta.');
         return;

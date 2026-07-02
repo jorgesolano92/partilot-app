@@ -1,0 +1,55 @@
+.eliminar-content {
+  --background: #f5f6fa;
+}
+
+.eliminar-container {
+  padding: 20px 16px 32px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.warning-card,
+.blocked-card,
+.scheduled-card {
+  background: #fff3cd;
+  border: 1px solid #ffecb5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  color: #664d03;
+}
+
+.blocked-card {
+  background: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+}
+
+.scheduled-card {
+  background: #cff4fc;
+  border-color: #b6effb;
+  color: #055160;
+}
+
+.form-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.form-card ion-button {
+  margin-top: 12px;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}

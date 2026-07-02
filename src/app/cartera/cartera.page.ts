@@ -134,6 +134,19 @@ export class CarteraPage implements OnInit, OnDestroy {
     return !!participacion?.is_storage;
   }
 
+  /** Cobro presencial solo en almacén (papel sin digitalizar); no en cartera digitalizada. */
+  muestraCobroPresencial(participacion: any): boolean {
+    if (!participacion?.presencial_contact?.formatted || !(participacion.premio > 0)) {
+      return false;
+    }
+    if (participacion.is_storage) {
+      return true;
+    }
+    return !participacion.requires_online_collection
+      && !participacion.is_digital
+      && participacion.wallet_mode !== 'digital';
+  }
+
   getImageUrl(path: string | null | undefined): string {
     if (!path) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) return path;

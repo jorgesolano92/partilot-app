@@ -36,6 +36,48 @@ export function hasSetPrefixComplete(value: string): boolean {
 }
 
 export function setPrefixKey(value: string): string {
+  const setNumber = extractSetNumber(value);
+  return setNumber != null ? String(setNumber).padStart(2, '0') : (value || '').trim();
+}
+
+export function extractSetNumber(value: string): number | null {
   const trimmed = (value || '').trim();
-  return trimmed.length >= 3 ? trimmed.slice(0, 3) : trimmed;
+  const parsed = parseParticipationInput(trimmed);
+  if (parsed) {
+    return parsed.setNumber;
+  }
+  const match = trimmed.match(/^(\d{1,2})/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+/** True si ambos valores vacíos, incompletos o pertenecen al mismo set (SS). */
+export function sameParticipationSet(a: string, b: string): boolean {
+  if (!a?.trim() || !b?.trim()) {
+    return true;
+  }
+  const setA = extractSetNumber(a);
+  const setB = extractSetNumber(b);
+  if (setA == null || setB == null) {
+    return true;
+  }
+  return setA === setB;
+}
+
+/** Número de participación (parte tras SS/), p. ej. 01/00002 → 2 */
+export function extractParticipationNumber(value: string): number {
+  const trimmed = (value || '').trim();
+  if (!trimmed) {
+    return 0;
+  }
+  const parsed = parseParticipationInput(trimmed);
+  if (parsed?.participationNumber != null) {
+    return parsed.participationNumber;
+  }
+  if (trimmed.includes('/')) {
+    const afterSlash = trimmed.split('/')[1] ?? '';
+    const n = parseInt(afterSlash, 10);
+    return isNaN(n) ? 0 : n;
+  }
+  const n = parseInt(trimmed, 10);
+  return isNaN(n) ? 0 : n;
 }

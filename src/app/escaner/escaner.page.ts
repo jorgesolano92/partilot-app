@@ -616,7 +616,7 @@ export class EscanerPage implements OnInit {
         this.loading = false;
         this.carteraService.notifyParticipacionesChanged();
         await this.alertModal.show('Digitalización exitosa', 'La participación ha sido guardada en tu cartera.');
-        this.router.navigate(['/tabs/tab1']);
+        this.reiniciarParaNuevaDigitalizacion();
       },
       error: async (err) => {
         this.loading = false;
@@ -748,13 +748,20 @@ export class EscanerPage implements OnInit {
   }
 
   volverAEscanear() {
+    this.reiniciarParaNuevaDigitalizacion(true);
+  }
+
+  /** Limpia el detalle y vuelve a la pantalla inicial del escáner. */
+  private reiniciarParaNuevaDigitalizacion(abrirEscaner = false) {
     this.ticketEscaneado = null;
     this.imagenTicket = null;
     this.participacion = null;
     this.status = null;
     this.mensajeError = '';
     this.modoEscaneo = true;
-    void this.scanQR();
+    if (abrirEscaner) {
+      void this.scanQR();
+    }
   }
 
   async mostrarAlerta(header: string, message: string) {

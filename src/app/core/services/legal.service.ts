@@ -58,6 +58,8 @@ export interface LegalClientConfig {
 
   prize_donation?: PrizeDonationLegalConfig;
 
+  account_deletion?: AccountDeletionLegalConfig;
+
 }
 
 
@@ -103,6 +105,50 @@ export interface PrizeDonationLegalConfig {
   version: string;
 
   text_hash: string;
+
+}
+
+
+
+export interface AccountDeletionLegalConfig {
+
+  title: string;
+
+  main_warning: string;
+
+  prizes_warning: string;
+
+  blocked_message: string;
+
+  email_confirm_label: string;
+
+  confirm_button: string;
+
+  cancel_button: string;
+
+  scheduled_notice: string;
+
+  version: string;
+
+  text_hash: string;
+
+}
+
+
+
+export interface AccountDeletionStatus {
+
+  can_request: boolean;
+
+  pending_prize_count: number;
+
+  deletion_requested_at?: string | null;
+
+  deletion_scheduled_at?: string | null;
+
+  deletion_status?: string | null;
+
+  ui: AccountDeletionLegalConfig;
 
 }
 
@@ -281,6 +327,66 @@ export class LegalService {
       )
 
       .pipe(catchError((err) => of({ success: false, message: err.error?.message || 'Error de conexión.' })));
+
+  }
+
+
+
+  getAccountDeletionStatus(): Observable<AccountDeletionStatus | null> {
+
+    return this.http
+
+      .get<{ success: boolean; status: AccountDeletionStatus }>(
+
+        `${this.apiUrl}/account/deletion/status`,
+
+        { headers: this.channelHeaders() }
+
+      )
+
+      .pipe(
+
+        map((response) => (response?.success ? response.status : null)),
+
+        catchError(() => of(null))
+
+      );
+
+  }
+
+
+
+  requestAccountDeletion(emailConfirm: string): Observable<{
+
+    success: boolean;
+
+    message?: string;
+
+    status?: AccountDeletionStatus | null;
+
+  }> {
+
+    return this.http
+
+      .post<{ success: boolean; message?: string; status?: AccountDeletionStatus }>(
+
+        `${this.apiUrl}/account/deletion/request`,
+
+        { email_confirm: emailConfirm },
+
+        { headers: this.channelHeaders() }
+
+      )
+
+      .pipe(catchError((err) => of({
+
+        success: false,
+
+        message: err.error?.message || 'Error de conexión.',
+
+        status: err.error?.status ?? null,
+
+      })));
 
   }
 
