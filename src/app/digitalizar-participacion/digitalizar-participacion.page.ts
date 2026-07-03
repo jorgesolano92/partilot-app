@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertModalService } from '../core/services/alert-modal.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { CarteraService } from '../core/services/cartera.service';
 import { BiometricService } from '../core/services/biometric.service';
@@ -29,12 +29,18 @@ export class DigitalizarParticipacionPage implements OnInit {
   constructor(
     private alertModal: AlertModalService,
     private router: Router,
+    private route: ActivatedRoute,
     private carteraService: CarteraService,
     private biometricService: BiometricService,
     private alertController: AlertController
   ) { }
 
-  ngOnInit() {}
+  ngOnInit() {
+    const ref = this.route.snapshot.queryParamMap.get('ref')?.trim();
+    if (ref) {
+      void this.consultarReferencia(ref);
+    }
+  }
 
   getImageUrl(path: string | null | undefined): string {
     if (!path) return '';

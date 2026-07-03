@@ -141,6 +141,11 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'comprobar-participacion',
+    redirectTo: '/tabs/comprobar-participacion',
+    pathMatch: 'full'
+  },
+  {
     path: 'loteria-social',
     loadChildren: () => import('./loteria-social/loteria-social.module').then( m => m.LoteriaSocialPageModule)
   },

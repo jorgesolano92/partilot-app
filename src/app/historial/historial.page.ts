@@ -7,6 +7,11 @@ import { CarteraService } from '../core/services/cartera.service';
 import { AuthService } from '../core/services/auth.service';
 import { environment } from '../../environments/environment';
 import { Capacitor } from '@capacitor/core';
+import {
+  defaultListQuery,
+  ParticipationListMeta,
+  ParticipationListQuery,
+} from '../core/models/list-pagination.model';
 
 @Component({
   selector: 'app-historial',
@@ -25,6 +30,8 @@ export class HistorialPage implements OnInit, OnDestroy {
   notifyAutoEnabled = false;
   buyerNotifyChannel: 'sms' | 'manual' = 'manual';
   enviandoNotificacion = false;
+  listQuery: ParticipationListQuery = defaultListQuery(false);
+  listMeta: ParticipationListMeta | null = null;
 
   constructor(
     private router: Router,
@@ -91,11 +98,12 @@ export class HistorialPage implements OnInit, OnDestroy {
     }
   }
 
-  /** Para usuario: solo digitalizaciones, ventas digitales recibidas, regalos, cobros y donaciones. */
+  /** Para usuario: digitalizaciones, ventas digitales, regalos, cobros y donaciones. */
   get historialParaLista(): any[] {
     if (this.rolActual === 'usuario') {
       return this.historial.filter((i: any) =>
-        ['digitalizacion', 'venta_digital_recibida', 'regalo', 'recibido-regalo', 'cobro', 'donacion'].includes(i.tipo)
+        ['digitalizacion', 'venta_digital_recibida', 'regalo', 'cobro', 'donacion'].includes(i.tipo)
+        || (i.tipo === 'regalo' && (i.direccion === 'recibido' || i.direccion === 'enviado'))
       );
     }
     return this.historial;
@@ -107,25 +115,27 @@ export class HistorialPage implements OnInit, OnDestroy {
     // Como vendedor: cargar historial desde la API Partilot
     if (this.rolActual === 'vendedor') {
       this.loadingHistorial = true;
-      this.ventasService.getHistorial().subscribe({
+      this.ventasService.getHistorial(this.listQuery).subscribe({
         next: (res) => {
           this.loadingHistorial = false;
           if (res.success && Array.isArray(res.historial)) {
             this.applyBuyerNotifyConfig(res);
-            // Historial del vendedor solo desde servidor (misma cuenta en cualquier dispositivo).
             this.historial = this.normalizarFormaPagoEnHistorial(res.historial).sort(
               (a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
             );
+            this.listMeta = res.meta ?? null;
             return;
           }
           this.errorHistorial = 'No se pudo cargar el historial desde el servidor.';
           this.historial = [];
+          this.listMeta = null;
         },
         error: () => {
           this.loadingHistorial = false;
           this.errorHistorial =
             'No se pudo cargar el historial. Comprueba la conexión. El historial de ventas está en el servidor, no en este dispositivo.';
           this.historial = [];
+          this.listMeta = null;
         }
       });
       return;
@@ -134,13 +144,14 @@ export class HistorialPage implements OnInit, OnDestroy {
     // Como usuario: cargar historial desde API (digitalizaciones, regalos; cobros pendiente)
     if (this.rolActual === 'usuario') {
       this.loadingHistorial = true;
-      this.carteraService.getHistorial().subscribe({
+      this.carteraService.getHistorial(this.listQuery).subscribe({
         next: (res) => {
           this.loadingHistorial = false;
           if (res.success && Array.isArray(res.historial)) {
             this.historial = res.historial.sort((a: any, b: any) =>
               new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
             );
+            this.listMeta = res.meta ?? null;
             return;
           }
           this.cargarHistorialDesdeLocalStorage();
@@ -156,6 +167,20 @@ export class HistorialPage implements OnInit, OnDestroy {
 
     // Gestor: solo localStorage
     this.cargarHistorialDesdeLocalStorage();
+  }
+
+  onListFiltersApply(): void {
+    this.listQuery = {
+      ...this.listQuery,
+      page: 1,
+      per_page: Number(this.listQuery.per_page) || 20,
+    };
+    this.loadHistorial();
+  }
+
+  onListPageChange(page: number): void {
+    this.listQuery = { ...this.listQuery, page };
+    this.loadHistorial();
   }
 
   private cargarHistorialDesdeLocalStorage() {

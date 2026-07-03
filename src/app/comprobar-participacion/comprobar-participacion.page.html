@@ -1,0 +1,128 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title></ion-title>
+    <div class="header-content">
+      <img src="/assets/logo_menu.svg" alt="PARTILOT" class="logo-image">
+    </div>
+    <ion-buttons slot="end">
+      <ion-menu-button menu="main-menu" slot="end"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="comprobar-content">
+  <div class="comprobar-container">
+    <div class="header-section">
+      <h1 class="page-title">
+        <ion-icon name="ticket-outline" class="title-icon"></ion-icon>
+        Comprobar participación
+      </h1>
+      <p class="page-subtitle">Consulta si tu participación tiene premio en el sorteo</p>
+    </div>
+
+    <div class="form-card" *ngIf="mostrarFormulario && !loading">
+      <p class="form-intro">Escanea el QR impreso en tu participación o introduce la referencia.</p>
+
+      <ion-button expand="block" class="btn-primary" (click)="abrirEscaner()">
+        <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+        Escanear código QR
+      </ion-button>
+
+      <div class="divider">
+        <span>o</span>
+      </div>
+
+      <label class="field-label">Número de referencia</label>
+      <ion-item lines="none" class="input-item">
+        <ion-input
+          [(ngModel)]="referenciaManual"
+          type="text"
+          placeholder="Ej: 0000000000000000000"
+          (keyup.enter)="buscarManual()"></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" class="btn-primary" (click)="buscarManual()">
+        Comprobar premio
+      </ion-button>
+    </div>
+
+    <div class="loading-section" *ngIf="loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Comprobando participación...</p>
+    </div>
+
+    <div class="result-box result-error" *ngIf="errorMessage && !loading">
+      <ion-icon name="close-circle-outline"></ion-icon>
+      <p>{{ errorMessage }}</p>
+      <ion-button expand="block" class="btn-outline" (click)="nuevaConsulta()">
+        Intentar de nuevo
+      </ion-button>
+    </div>
+
+    <div class="result-card" *ngIf="ticket && !loading">
+      <div class="lottery-info">
+        <h2>{{ ticket.lottery?.name || 'Sorteo' }}</h2>
+        <p><strong>Fecha del sorteo:</strong> {{ formatDrawDate(ticket.lottery?.draw_date) }}</p>
+        <p><strong>Entidad:</strong> {{ ticket.reserve?.entity?.name || '—' }}</p>
+      </div>
+
+      <div class="numbers-section">
+        <h3>Números de la participación</h3>
+        <div class="numbers-grid">
+          <div class="number-box" *ngFor="let num of reservationNumbers">
+            {{ formatNumber(num) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="ticket-details">
+        <div class="detail-row">
+          <span class="detail-label">Referencia</span>
+          <span class="detail-value">{{ ticket.data?.participation_number || '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Participación</span>
+          <span class="detail-value">{{ ticket.data?.participation_code || '—' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Importe jugado</span>
+          <span class="detail-value">{{ ticket.set?.played_amount | number:'1.2-2' }} €</span>
+        </div>
+      </div>
+
+      <div class="prize-box prize-winner" *ngIf="prizeStatus === 'winner'">
+        <h3>¡Felicidades!</h3>
+        <div class="prize-amount">{{ prizeInfo?.prize_amount | number:'1.2-2' }} €</div>
+        <p class="prize-note">Premio por participación</p>
+        <span class="status-badge status-winner">Ganador</span>
+        <div class="categories-list" *ngIf="prizeInfo?.winning_categories?.length">
+          <div class="category-row" *ngFor="let cat of prizeInfo?.winning_categories">
+            <span>{{ cat.categoria }}</span>
+            <span>{{ cat.premio_decimo | number:'1.2-2' }} €</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="prize-box prize-no-prize" *ngIf="prizeStatus === 'no_prize'">
+        <h3>Sin premio</h3>
+        <p>Esta participación no ha resultado premiada en este sorteo.</p>
+        <span class="status-badge status-no-prize">Sin premio</span>
+      </div>
+
+      <div class="prize-box prize-pending" *ngIf="prizeStatus === 'pending'">
+        <h3>Resultados pendientes</h3>
+        <p>Los resultados de este sorteo aún no han sido publicados.</p>
+        <span class="status-badge status-pending">Pendiente</span>
+      </div>
+
+      <ion-button expand="block" class="btn-outline" (click)="nuevaConsulta()">
+        Comprobar otra participación
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

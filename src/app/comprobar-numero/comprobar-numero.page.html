@@ -65,8 +65,8 @@
         </div>
       </div>
 
-      <ion-item lines="full" class="form-item">
-        <ion-label position="stacked">Número (0-99999)</ion-label>
+      <label class="field-label">Número (0-99999)</label>
+      <ion-item lines="none" class="input-item">
         <ion-input
           [(ngModel)]="numero"
           type="number"
@@ -78,7 +78,7 @@
 
       <ion-button
         expand="block"
-        class="submit-btn"
+        class="btn-comprobar"
         (click)="comprobar()"
         [disabled]="loading">
         <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>

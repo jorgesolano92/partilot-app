@@ -93,6 +93,10 @@ const routes: Routes = [
         loadChildren: () => import('../comprobar-numero/comprobar-numero.module').then(m => m.ComprobarNumeroPageModule)
       },
       {
+        path: 'comprobar-participacion',
+        loadChildren: () => import('../comprobar-participacion/comprobar-participacion.module').then(m => m.ComprobarParticipacionPageModule)
+      },
+      {
         path: 'notificaciones',
         loadChildren: () => import('../notificaciones/notificaciones.module').then(m => m.NotificacionesPageModule)
       },

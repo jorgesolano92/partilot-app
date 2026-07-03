@@ -1,0 +1,52 @@
+<div class="list-filters-wrap">
+  <div class="filters-toolbar">
+    <button type="button" class="filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersExpanded">
+      <ion-icon name="funnel-outline" class="filter-icon"></ion-icon>
+      <span class="filter-label">Filtros</span>
+      <span class="active-dot" *ngIf="hasCustomFilters"></span>
+      <ion-icon [name]="filtersExpanded ? 'chevron-up-outline' : 'chevron-down-outline'" class="chevron-icon"></ion-icon>
+    </button>
+
+    <div class="toolbar-pagination" *ngIf="meta && meta.total > 0">
+      <span class="pagination-info">{{ meta.page }} / {{ meta.last_page }} · {{ meta.total }}</span>
+      <ion-button fill="clear" size="small" class="page-btn" [disabled]="meta.page <= 1 || loading" (click)="goPrev()">
+        <ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" size="small" class="page-btn" [disabled]="meta.page >= meta.last_page || loading" (click)="goNext()">
+        <ion-icon name="chevron-forward-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <div class="filter-panel" *ngIf="filtersExpanded">
+    <p class="filters-hint">Por defecto se muestran los últimos 3 meses. Amplía el rango para ver historial más antiguo.</p>
+
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label class="field-label">Desde</label>
+        <ion-input type="date" [(ngModel)]="query.date_from"></ion-input>
+      </div>
+      <div class="filter-field">
+        <label class="field-label">Hasta</label>
+        <ion-input type="date" [(ngModel)]="query.date_to"></ion-input>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-field filter-field--grow">
+        <label class="field-label">Mostrar por página</label>
+        <ion-select interface="popover" [(ngModel)]="query.per_page">
+          <ion-select-option *ngFor="let n of perPageOptions" [value]="n">{{ n }}</ion-select-option>
+        </ion-select>
+      </div>
+      <ion-button class="btn-apply" (click)="onApply()" [disabled]="loading">
+        Aplicar
+      </ion-button>
+    </div>
+
+    <ion-item *ngIf="showIncludeExpired" lines="none" class="expired-toggle">
+      <ion-checkbox slot="start" [(ngModel)]="query.include_expired"></ion-checkbox>
+      <ion-label>Incluir participaciones caducadas</ion-label>
+    </ion-item>
+  </div>
+</div>

@@ -8,12 +8,15 @@ import { HistorialPageRoutingModule } from './historial-routing.module';
 
 import { HistorialPage } from './historial.page';
 
+import { ParticipationListFiltersModule } from '../shared/participation-list-filters/participation-list-filters.module';
+
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    HistorialPageRoutingModule
+    HistorialPageRoutingModule,
+    ParticipationListFiltersModule,
   ],
   declarations: [HistorialPage]
 })

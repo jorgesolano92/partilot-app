@@ -1,11 +1,17 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import {
+  ParticipationListMeta,
+  ParticipationListQuery,
+  listQueryToParams,
+} from '../models/list-pagination.model';
 
 export interface BuyerNotifyConfigResponse {
   success: boolean;
   historial?: any[];
+  meta?: ParticipationListMeta;
   sms_enabled?: boolean;
   /** Siempre false: ya no se usa Twilio WhatsApp. */
   whatsapp_enabled?: boolean;
@@ -308,8 +314,15 @@ export class VentasService {
   /**
    * Obtener historial de ventas del vendedor autenticado desde la API Partilot.
    */
-  getHistorial(): Observable<BuyerNotifyConfigResponse> {
-    return this.http.get<BuyerNotifyConfigResponse>(`${this.apiUrl}/sales/me`);
+  getHistorial(query?: ParticipationListQuery): Observable<BuyerNotifyConfigResponse> {
+    let params = new HttpParams();
+    if (query) {
+      Object.entries(listQueryToParams(query)).forEach(([key, value]) => {
+        params = params.set(key, value);
+      });
+    }
+
+    return this.http.get<BuyerNotifyConfigResponse>(`${this.apiUrl}/sales/me`, { params });
   }
 
   /**

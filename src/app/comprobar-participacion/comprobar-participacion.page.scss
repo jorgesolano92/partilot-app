@@ -1,0 +1,314 @@
+.comprobar-content {
+  --background: #F5F6F7;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comprobar-container {
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.header-section {
+  margin-bottom: 20px;
+
+  .page-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0 0 4px 0;
+
+    .title-icon {
+      font-size: 1.5rem;
+    }
+  }
+
+  .page-subtitle {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.95rem;
+  }
+}
+
+.form-card,
+.result-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.form-intro {
+  margin: 0 0 16px 0;
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.field-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.input-item {
+  --background: #F5F6F7;
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --inner-padding-end: 0;
+  --min-height: 48px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+
+  ion-input {
+    --padding-start: 0;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    font-size: 16px;
+    color: #212529;
+  }
+}
+
+.btn-primary {
+  --background: #F49200;
+  --background-activated: #e08500;
+  --background-hover: #e08500;
+  --color: #212529;
+  --box-shadow: none;
+  --border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+  height: 50px;
+  text-transform: none;
+  margin-bottom: 8px;
+}
+
+.btn-outline {
+  --background: transparent;
+  --color: #212529;
+  --border-color: #E9ECEF;
+  --border-width: 1px;
+  --border-radius: 25px;
+  font-weight: 600;
+  height: 48px;
+  text-transform: none;
+  margin-top: 16px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  color: #adb5bd;
+  font-size: 13px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #E9ECEF;
+  }
+
+  span {
+    padding: 0 12px;
+  }
+}
+
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  color: #6c757d;
+
+  ion-spinner {
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.result-box {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 40px;
+    color: #dc3545;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin: 0 0 8px 0;
+    color: #495057;
+  }
+}
+
+.lottery-info {
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.25rem;
+    color: #212529;
+  }
+
+  p {
+    margin: 0 0 4px 0;
+    color: #495057;
+    font-size: 14px;
+  }
+}
+
+.numbers-section {
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    color: #212529;
+  }
+}
+
+.numbers-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.number-box {
+  min-width: 72px;
+  padding: 10px 12px;
+  background: #F5F6F7;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 700;
+  color: #212529;
+  font-size: 16px;
+}
+
+.ticket-details {
+  margin-bottom: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #E9ECEF;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.detail-label {
+  color: #6c757d;
+}
+
+.detail-value {
+  color: #212529;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-all;
+}
+
+.prize-box {
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 8px;
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 0;
+    color: #495057;
+    font-size: 14px;
+  }
+}
+
+.prize-winner {
+  background: #fff8eb;
+  border: 1px solid #ffe0a3;
+
+  .prize-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #F49200;
+    margin: 8px 0;
+  }
+
+  .prize-note {
+    margin-bottom: 12px !important;
+  }
+}
+
+.prize-no-prize {
+  background: #f8f9fa;
+  border: 1px solid #E9ECEF;
+}
+
+.prize-pending {
+  background: #eef4ff;
+  border: 1px solid #cfe0ff;
+}
+
+.status-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.status-winner {
+  background: #F49200;
+  color: #212529;
+}
+
+.status-no-prize {
+  background: #E9ECEF;
+  color: #495057;
+}
+
+.status-pending {
+  background: #cfe0ff;
+  color: #1e4fbf;
+}
+
+.categories-list {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.category-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(244, 146, 0, 0.2);
+  font-size: 14px;
+  color: #495057;
+}

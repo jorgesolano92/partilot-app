@@ -9,6 +9,10 @@ import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { environment } from '../environments/environment';
+import {
+  esUrlComprobacionParticipacion,
+  queryParamsDesdeDeepLink,
+} from './core/utils/participation-deeplink.util';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +28,7 @@ export class AppComponent implements OnInit, OnDestroy {
   userImage: string | null = null;
 
   private appStateListener: PluginListenerHandle | null = null;
+  private appUrlOpenListener: PluginListenerHandle | null = null;
 
   constructor(
     private menuController: MenuController,
@@ -47,6 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.actualizarUsuario();
     await this.inicializarStatusBar();
     await this.registrarListenerEstadoApp();
+    await this.registrarDeepLinks();
     try {
       await this.pushNotificationsService.initialize();
       this.pushNotificationsService.syncTokenWithBackend();
@@ -58,6 +64,8 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     void this.appStateListener?.remove();
     this.appStateListener = null;
+    void this.appUrlOpenListener?.remove();
+    this.appUrlOpenListener = null;
   }
 
   /** Al pasar a segundo plano se invalida el desbloqueo biométrico; al volver se exige de nuevo si aplica. */
@@ -93,7 +101,43 @@ export class AppComponent implements OnInit, OnDestroy {
     if (p === '' || p === '/') return true;
     if (p.startsWith('/login')) return true;
     if (p.startsWith('/registro')) return true;
+    if (p.startsWith('/tabs/comprobar-participacion')) return true;
     return false;
+  }
+
+  /** Deep links HTTPS partilot.es/comprobar-participaciones?ref=... */
+  private async registrarDeepLinks(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+
+    try {
+      this.appUrlOpenListener = await App.addListener('appUrlOpen', ({ url }) => {
+        this.manejarDeepLink(url);
+      });
+    } catch (e) {
+      console.warn('Deep link listener no disponible:', e);
+    }
+  }
+
+  private manejarDeepLink(url: string): void {
+    if (!esUrlComprobacionParticipacion(url)) return;
+
+    const queryParams = queryParamsDesdeDeepLink(url);
+    if (!queryParams) return;
+
+    const path = (this.router.url || '').split('?')[0];
+    if (path.startsWith('/registro') || path.startsWith('/tabs/comprobar-participacion')) {
+      return;
+    }
+
+    if (this.authService.isLoggedIn()) {
+      this.router.navigate(['/tabs/comprobar-participacion'], {
+        queryParams,
+        replaceUrl: true,
+      });
+      return;
+    }
+
+    this.router.navigate(['/registro'], { replaceUrl: true });
   }
 
   /**

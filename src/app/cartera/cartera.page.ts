@@ -6,6 +6,11 @@ import { AuthService } from '../core/services/auth.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { environment } from '../../environments/environment';
 import { Subscription } from 'rxjs';
+import {
+  defaultListQuery,
+  ParticipationListMeta,
+  ParticipationListQuery,
+} from '../core/models/list-pagination.model';
 
 @Component({
   selector: 'app-cartera',
@@ -28,6 +33,8 @@ export class CarteraPage implements OnInit, OnDestroy {
   mostrarModalCodigoVinculacion = false;
   codigoVinculacion = '';
   vinculandoCodigo = false;
+  listQuery: ParticipationListQuery = defaultListQuery(false);
+  listMeta: ParticipationListMeta | null = null;
   private participacionesChangedSubscription?: Subscription;
 
   constructor(
@@ -107,19 +114,37 @@ export class CarteraPage implements OnInit, OnDestroy {
     // Solo cargar participaciones si está logueado y está en modo usuario (no en modo vendedor)
     if (!this.authService.isLoggedIn() || this.rolActual === 'vendedor') {
       this.participaciones = [];
+      this.listMeta = null;
       return;
     }
     this.loading = true;
-    this.carteraService.getParticipations().subscribe({
+    this.carteraService.getParticipations(this.listQuery).subscribe({
       next: (res) => {
         this.loading = false;
         this.participaciones = (res.participations || []).map((p: any) => ({ ...p, estado: p.estado || 'activa' }));
+        this.listMeta = res.meta ?? null;
       },
       error: () => {
         this.loading = false;
         this.participaciones = [];
+        this.listMeta = null;
       }
     });
+  }
+
+  onListFiltersApply(): void {
+    this.listQuery = {
+      ...this.listQuery,
+      page: 1,
+      per_page: Number(this.listQuery.per_page) || 20,
+      include_expired: !!this.listQuery.include_expired,
+    };
+    this.loadParticipaciones();
+  }
+
+  onListPageChange(page: number): void {
+    this.listQuery = { ...this.listQuery, page };
+    this.loadParticipaciones();
   }
 
   get participacionesCartera(): any[] {

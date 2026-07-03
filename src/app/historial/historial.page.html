@@ -62,6 +62,15 @@
       <p class="page-subtitle">Aquí puedes ver el historial</p>
     </div>
 
+    <app-participation-list-filters
+      *ngIf="rolActual === 'usuario' || rolActual === 'vendedor'"
+      [query]="listQuery"
+      [meta]="listMeta"
+      [loading]="loadingHistorial"
+      (filtersApply)="onListFiltersApply()"
+      (pageChange)="onListPageChange($event)">
+    </app-participation-list-filters>
+
     <!-- Cargando historial desde API -->
     <div *ngIf="loadingHistorial" class="loading-state">
       <ion-spinner name="crescent"></ion-spinner>

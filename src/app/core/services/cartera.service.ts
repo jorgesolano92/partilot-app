@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import {
+  ParticipationListMeta,
+  ParticipationListQuery,
+  listQueryToParams,
+} from '../models/list-pagination.model';
 
 @Injectable({
   providedIn: 'root'
@@ -23,8 +28,22 @@ export class CarteraService {
   }
 
   /** Listar participaciones de la cartera del usuario */
-  getParticipations(): Observable<{ success: boolean; participations: any[] }> {
-    return this.http.get<{ success: boolean; participations: any[] }>(`${this.apiUrl}/wallet/participations`);
+  getParticipations(query?: ParticipationListQuery): Observable<{
+    success: boolean;
+    participations: any[];
+    meta?: ParticipationListMeta;
+  }> {
+    let params = new HttpParams();
+    if (query) {
+      Object.entries(listQueryToParams(query)).forEach(([key, value]) => {
+        params = params.set(key, value);
+      });
+    }
+
+    return this.http.get<{ success: boolean; participations: any[]; meta?: ParticipationListMeta }>(
+      `${this.apiUrl}/wallet/participations`,
+      { params }
+    );
   }
 
   /** Consultar participación por referencia (antes de vincular) */
@@ -85,8 +104,22 @@ export class CarteraService {
   }
 
   /** Historial del usuario: digitalizaciones, regalos (cobros pendiente) */
-  getHistorial(): Observable<{ success: boolean; historial: any[] }> {
-    return this.http.get<{ success: boolean; historial: any[] }>(`${this.apiUrl}/wallet/historial`);
+  getHistorial(query?: ParticipationListQuery): Observable<{
+    success: boolean;
+    historial: any[];
+    meta?: ParticipationListMeta;
+  }> {
+    let params = new HttpParams();
+    if (query) {
+      Object.entries(listQueryToParams(query)).forEach(([key, value]) => {
+        params = params.set(key, value);
+      });
+    }
+
+    return this.http.get<{ success: boolean; historial: any[]; meta?: ParticipationListMeta }>(
+      `${this.apiUrl}/wallet/historial`,
+      { params }
+    );
   }
 
   /** Participaciones cobrables (con premio, no regaladas, no cobradas) */

@@ -62,6 +62,16 @@
       <p class="page-subtitle">Gestiona tus participaciones</p>
     </div>
 
+    <app-participation-list-filters
+      *ngIf="rolActual === 'usuario'"
+      [query]="listQuery"
+      [showIncludeExpired]="true"
+      [meta]="listMeta"
+      [loading]="loading"
+      (filtersApply)="onListFiltersApply()"
+      (pageChange)="onListPageChange($event)">
+    </app-participation-list-filters>
+
     <!-- Botones de acción -->
     <div class="actions-section" style="margin-bottom: 8px !important;">
       <ion-button 

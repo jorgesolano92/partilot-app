@@ -8,12 +8,15 @@ import { CarteraPageRoutingModule } from './cartera-routing.module';
 
 import { CarteraPage } from './cartera.page';
 
+import { ParticipationListFiltersModule } from '../shared/participation-list-filters/participation-list-filters.module';
+
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    CarteraPageRoutingModule
+    CarteraPageRoutingModule,
+    ParticipationListFiltersModule,
   ],
   declarations: [CarteraPage]
 })

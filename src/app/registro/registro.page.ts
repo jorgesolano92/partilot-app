@@ -34,6 +34,12 @@ export class RegistroPage implements OnInit {
     });
   }
 
+  ionViewDidEnter() {
+    if (this.authService.isLoggedIn()) {
+      this.authService.navigateToDefaultHome('/tabs/tab3');
+    }
+  }
+
   get registrationLabel(): string {
     return (
       this.legalConfig?.registration?.checkbox_label ||
@@ -71,9 +77,17 @@ export class RegistroPage implements OnInit {
 
     this.loading = true;
     this.authService.register(this.email, this.password, this.fechaNacimiento).subscribe({
-      next: () => {
+      next: (response) => {
         this.loading = false;
-        this.router.navigateByUrl('/tabs');
+        if (!response?.success || !response?.token) {
+          void this.mostrarAlerta(
+            'Registro incompleto',
+            'Tu cuenta puede haberse creado, pero no se inició la sesión. Prueba a acceder con tu email y contraseña.'
+          );
+          this.router.navigate(['/login'], { replaceUrl: true });
+          return;
+        }
+        this.authService.navigateToDefaultHome('/tabs/tab3');
       },
       error: async (err) => {
         this.loading = false;

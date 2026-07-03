@@ -208,31 +208,45 @@
     }
   }
 
-  .form-item {
-    --background: transparent;
-    --padding-start: 0;
-    --inner-padding-end: 0;
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
     margin-bottom: 8px;
+  }
 
-    ion-label {
-      font-weight: 600;
-      color: #495057;
-    }
+  .input-item {
+    --background: #F5F6F7;
+    --border-radius: 12px;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --inner-padding-end: 0;
+    --min-height: 48px;
+    border-radius: 12px;
+    margin-bottom: 16px;
 
-    ion-select,
     ion-input {
-      --padding-start: 12px;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      margin-top: 4px;
+      --padding-start: 0;
+      --padding-top: 12px;
+      --padding-bottom: 12px;
+      font-size: 16px;
+      color: #212529;
     }
   }
 
-  .submit-btn {
-    margin-top: 20px;
-    --border-radius: 12px;
+  .btn-comprobar {
+    --background: #F49200;
+    --background-activated: #e08500;
+    --background-hover: #e08500;
+    --color: #212529;
+    --box-shadow: none;
+    --border-radius: 25px;
     font-weight: 600;
-    height: 48px;
+    font-size: 1rem;
+    height: 50px;
+    text-transform: none;
+    margin-top: 4px;
   }
 }
 
