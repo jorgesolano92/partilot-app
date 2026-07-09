@@ -5,6 +5,7 @@ import { AuthService } from '../core/services/auth.service';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 
 @Component({
   selector: 'app-gestor-participaciones',
@@ -94,6 +95,16 @@ export class GestorParticipacionesPage implements OnInit, OnDestroy {
     } else if (this.usaFlujoVendedor) {
       this.recargarVistaActual();
     }
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(event, () => this.loading, () => {
+      if (this.usaFlujoGestor) {
+        this.recargarVistaActualGestor();
+      } else if (this.usaFlujoVendedor) {
+        this.recargarVistaActual();
+      }
+    });
   }
 
   /** Recarga la vista actual (entidades, tacos o detalle taco) para reflejar ventas recientes */

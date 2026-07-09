@@ -17,6 +17,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="historial-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="historial-container">
     
     <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->

@@ -28,6 +28,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="gestor-vendedores-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="gestor-vendedores-page-container">
     <!-- Selector de rol (Usuario / Vendedor / Gestor) como en diseños -->
     <div class="rol-selector" *ngIf="authService.canCliente() || authService.canSeller() || authService.canManager()">

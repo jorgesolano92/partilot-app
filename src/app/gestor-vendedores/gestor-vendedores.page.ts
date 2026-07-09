@@ -5,6 +5,7 @@ import { AuthService } from '../core/services/auth.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { DevolucionPreselectService } from '../core/services/devolucion-preselect.service';
 import { environment } from '../../environments/environment';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 
 @Component({
   selector: 'app-gestor-vendedores',
@@ -316,6 +317,18 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
     } else if (!this.selectedEntity && this.entities.length > 0) {
       this.loadEntities();
     }
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(event, () => this.loading, () => {
+      if (this.showSellerDetail && this.sellerDetail?.seller?.id) {
+        this.loadSellerDetail();
+      } else if (this.showSellersList && this.selectedEntity) {
+        this.loadSellers();
+      } else {
+        this.loadEntities();
+      }
+    });
   }
 
   ionViewWillLeave(): void {

@@ -5,6 +5,7 @@ import { AuthService } from '../core/services/auth.service';
 import { BiometricService } from '../core/services/biometric.service';
 import { AlertController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 import { finalize } from 'rxjs';
 
 type Step = 'sorteos' | 'participaciones' | 'resumen' | 'firma';
@@ -61,6 +62,11 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
   hasSignature = false;
   procesando = false;
   showSuccessModal = false;
+  successModalTitle = '¡Asignación registrada!';
+  successModalText = '';
+
+  /** Firma en canvas desactivada (no se persiste); conservar código para uso futuro. */
+  readonly signatureStepEnabled = false;
 
   constructor(
     private router: Router,
@@ -93,6 +99,20 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
     }
 
     this.errorMessage = 'Faltan datos del vendedor. Vuelve al detalle del vendedor.';
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(event, () => this.loading, () => this.refreshCurrentStep());
+  }
+
+  private refreshCurrentStep(): void {
+    if (this.step === 'sorteos') {
+      this.loadLotteries();
+      return;
+    }
+    if (this.step === 'participaciones' && this.selectedLottery) {
+      this.loadSets();
+    }
   }
 
   /** Llamar al salir al listado de vendedores para no reutilizar otro flujo con el mismo sessionStorage. */
@@ -599,6 +619,10 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
   }
 
   aceptarResumenContinuar() {
+    if (!this.signatureStepEnabled) {
+      this.enviarAsignacion();
+      return;
+    }
     this.step = 'firma';
     this.hasSignature = false;
     this.signatureDataUrl = null;
@@ -676,7 +700,7 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
       this.mostrarAlerta('Aviso', 'No hay participaciones para asignar.');
       return;
     }
-    if (!this.hasSignature) {
+    if (this.signatureStepEnabled && !this.hasSignature) {
       this.mostrarAlerta('Firma requerida', 'El vendedor debe firmar para confirmar.');
       return;
     }
@@ -686,6 +710,7 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
       next: (res) => {
         this.procesando = false;
         if (res.success) {
+          this.applySuccessModalContent(res);
           this.showSuccessModal = true;
         } else {
           this.mostrarAlerta('Error', res.message || 'No se pudo guardar la asignación.');
@@ -696,6 +721,73 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
         this.mostrarAlerta('Error', err?.error?.message || 'Error al guardar la asignación.');
       }
     });
+  }
+
+  private applySuccessModalContent(res: {
+    message?: string;
+    queued?: boolean;
+    proposal_count?: number;
+    assigned_count?: number;
+    pending_receipt?: boolean;
+  }): void {
+    if (res.message && !res.queued) {
+      this.successModalTitle = '¡Asignación registrada!';
+      this.successModalText = res.message;
+      return;
+    }
+
+    const counts = this.countAssignmentTypes();
+    const physical = counts.physical;
+    const digital = counts.digital;
+
+    if (physical > 0 && digital === 0) {
+      this.successModalTitle = 'Propuesta enviada';
+      this.successModalText =
+        `Se ha registrado la propuesta de ${physical} participación(es) física(s). ` +
+        'El vendedor recibirá un email para aceptar el recibo; hasta entonces no quedarán asignadas.';
+      return;
+    }
+
+    if (digital > 0 && physical === 0) {
+      this.successModalTitle = res.queued ? 'Asignación en proceso' : '¡Asignación registrada!';
+      this.successModalText = res.queued
+        ? `La asignación de ${digital} participación(es) digitales se está procesando en segundo plano. El vendedor recibirá confirmación por email.`
+        : `Se asignaron ${digital} participación(es) digitales correctamente. El vendedor recibirá un email de confirmación.`;
+      return;
+    }
+
+    if (physical > 0 && digital > 0) {
+      this.successModalTitle = 'Asignación registrada';
+      this.successModalText =
+        `Digitales (${digital}): se asignarán al momento. ` +
+        `Físicas (${physical}): el vendedor debe aceptar el recibo por email antes de quedar asignadas.`;
+      return;
+    }
+
+    this.successModalTitle = '¡Asignación registrada!';
+    this.successModalText =
+      res.message ||
+      (res.queued
+        ? 'La asignación se está procesando en segundo plano. El vendedor recibirá un email con los detalles.'
+        : 'La asignación ha sido registrada correctamente.');
+  }
+
+  private countAssignmentTypes(): { physical: number; digital: number } {
+    let physical = 0;
+    let digital = 0;
+    for (const p of this.participacionesToAssign) {
+      if (this.isParticipationDigital(p.participation_code)) {
+        digital++;
+      } else {
+        physical++;
+      }
+    }
+    return { physical, digital };
+  }
+
+  private isParticipationDigital(participationCode: string | undefined): boolean {
+    const code = (participationCode || '').trim();
+    return code.startsWith('1D/');
   }
 
   closeSuccessModal() {

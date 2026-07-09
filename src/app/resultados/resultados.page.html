@@ -17,6 +17,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="resultados-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="resultados-container">
     
     <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->

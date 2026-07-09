@@ -11,6 +11,7 @@ import {
   ParticipationListMeta,
   ParticipationListQuery,
 } from '../core/models/list-pagination.model';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 
 @Component({
   selector: 'app-cartera',
@@ -66,6 +67,10 @@ export class CarteraPage implements OnInit, OnDestroy {
     this.detectarRol();
     this.loadParticipaciones();
     this.checkPendingGiftsAlert();
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(event, () => this.loading, () => this.loadParticipaciones());
   }
 
   detectarRol() {

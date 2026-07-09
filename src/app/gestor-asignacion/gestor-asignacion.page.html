@@ -15,7 +15,7 @@
       <ion-button class="header-back-btn" *ngIf="step === 'resumen'" fill="clear" (click)="step = 'participaciones'">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
-      <ion-button class="header-back-btn" *ngIf="step === 'firma'" fill="clear" (click)="step = 'resumen'">
+      <ion-button class="header-back-btn" *ngIf="signatureStepEnabled && step === 'firma'" fill="clear" (click)="step = 'resumen'">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -36,6 +36,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="gestor-asignacion-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="asignacion-container">
     <div class="rol-selector" *ngIf="authService.canCliente() || authService.canSeller() || authService.canManager()">
       <ion-button
@@ -352,16 +355,16 @@
             <strong class="total-asignadas-value">{{ participacionesToAssign.length }}</strong>
           </div>
           <div class="resumen-actions">
-            <ion-button class="btn-aceptar-asignacion" (click)="aceptarResumenContinuar()">
-              Aceptar
+            <ion-button class="btn-aceptar-asignacion" (click)="aceptarResumenContinuar()" [disabled]="procesando">
+              {{ procesando ? 'Enviando...' : (signatureStepEnabled ? 'Aceptar' : 'Confirmar y enviar') }}
             </ion-button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Paso 4: Firma de confirmación -->
-    <div class="view-section" *ngIf="step === 'firma' && !loading">
+    <!-- Paso 4: Firma de confirmación (oculto mientras no se use; ver signatureStepEnabled) -->
+    <div class="view-section" *ngIf="signatureStepEnabled && step === 'firma' && !loading">
       <div class="section-header devolucion-qr-header">
         <div class="header-titles">
           <h1 class="section-title">Firma de Confirmación</h1>
@@ -402,8 +405,8 @@
 <!-- Modal: ¡Asignación Registrada! -->
 <div class="modal-overlay modal-centered-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
   <div class="modal-centered-box modal-asignacion-success" (click)="$event.stopPropagation()">
-    <h2 class="modal-asignacion-success-title">¡Asignación Registrada!</h2>
-    <p class="modal-asignacion-success-text">La asignación ha sido registrada con éxito. El usuario recibirá un email para comunicarle su nueva asignación.</p>
+    <h2 class="modal-asignacion-success-title">{{ successModalTitle }}</h2>
+    <p class="modal-asignacion-success-text">{{ successModalText }}</p>
     <ion-button expand="block" color="warning" class="btn-modal-aceptar" (click)="closeSuccessModal()">Aceptar</ion-button>
   </div>
 </div>

@@ -450,11 +450,25 @@ export class VentasService {
   saveAssignments(
     sellerId: number,
     participations: Array<{ id: number; number: number; set_id: number }>
-  ): Observable<{ success: boolean; message?: string; assigned_count?: number }> {
+  ): Observable<{
+    success: boolean;
+    message?: string;
+    queued?: boolean;
+    assigned_count?: number;
+    proposal_count?: number;
+    pending_receipt?: boolean;
+  }> {
     const participationsJson = JSON.stringify(
       participations.map(p => ({ id: p.id, number: p.number, set_id: p.set_id }))
     );
-    return this.http.post<{ success: boolean; message?: string; assigned_count?: number }>(
+    return this.http.post<{
+      success: boolean;
+      message?: string;
+      queued?: boolean;
+      assigned_count?: number;
+      proposal_count?: number;
+      pending_receipt?: boolean;
+    }>(
       `${this.apiUrl}/sellers/save-assignments`,
       { seller_id: sellerId, participations_json: participationsJson }
     );

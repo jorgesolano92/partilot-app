@@ -34,6 +34,9 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="gestor-devolucion-content">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="devolucion-container">
     <!-- Selector de rol (Usuario / Vendedor / Gestor) -->
     <div class="rol-selector" *ngIf="authService.canCliente() || authService.canSeller() || authService.canManager()">

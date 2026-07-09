@@ -14,6 +14,7 @@ import {
   sameParticipationSet,
   setPrefixKey,
 } from '../core/utils/participation-input.util';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 
 @Component({
   selector: 'app-venta',
@@ -138,6 +139,27 @@ export class VentaPage implements OnInit {
     this.reserveDigitalId = null;
     this.setSeleccionado = null;
     this.clearSetInputState();
+    this.loadEntities();
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(event, () => this.loading, () => this.refreshCurrentView());
+  }
+
+  private refreshCurrentView(): void {
+    if (!this.isVendedor) return;
+    if (this.showVentaView && this.selectedLottery) {
+      this.loadReservesAndSets();
+      return;
+    }
+    if (this.showLotteriesList && this.selectedEntity) {
+      this.loadLotteries();
+      return;
+    }
+    if (this.showReserveSelection && this.selectedLottery) {
+      this.loadReservesAndSets();
+      return;
+    }
     this.loadEntities();
   }
 

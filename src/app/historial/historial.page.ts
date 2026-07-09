@@ -12,6 +12,7 @@ import {
   ParticipationListMeta,
   ParticipationListQuery,
 } from '../core/models/list-pagination.model';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 
 @Component({
   selector: 'app-historial',
@@ -54,6 +55,10 @@ export class HistorialPage implements OnInit, OnDestroy {
   ionViewWillEnter() {
     this.detectarRol();
     this.loadHistorial();
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(event, () => this.loadingHistorial, () => this.loadHistorial());
   }
 
   detectarRol() {

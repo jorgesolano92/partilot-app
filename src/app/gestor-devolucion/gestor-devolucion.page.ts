@@ -6,6 +6,7 @@ import { BiometricService } from '../core/services/biometric.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { DevolucionPreselectService } from '../core/services/devolucion-preselect.service';
 import { environment } from '../../environments/environment';
+import { refreshWithLoadingWatch } from '../core/utils/ion-refresher.util';
 
 type Step = 'entidades' | 'sorteos' | 'vendedores' | 'participaciones' | 'resumen' | 'liquidacion';
 
@@ -85,6 +86,39 @@ export class GestorDevolucionPage implements OnInit {
     }
     if (this.step === 'entidades') {
       this.loadEntities();
+    }
+  }
+
+  handleRefresh(event: CustomEvent): void {
+    refreshWithLoadingWatch(
+      event,
+      () => this.loading || this.loadingAvailable,
+      () => this.refreshCurrentStep()
+    );
+  }
+
+  private refreshCurrentStep(): void {
+    switch (this.step) {
+      case 'entidades':
+        this.loadEntities();
+        break;
+      case 'vendedores':
+        this.loadSellers();
+        break;
+      case 'sorteos':
+        this.loadSorteos();
+        break;
+      case 'participaciones':
+        this.loadReserves();
+        this.loadSets();
+        if (this.selectedSet) {
+          this.loadAvailableToReturn();
+        }
+        break;
+      case 'resumen':
+      case 'liquidacion':
+        this.cargarResumenLiquidacion();
+        break;
     }
   }
 
