@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DevolutionsService } from '../core/services/devolutions.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { BiometricService } from '../core/services/biometric.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { DevolucionPreselectService } from '../core/services/devolucion-preselect.service';
@@ -70,7 +71,8 @@ export class GestorDevolucionPage implements OnInit {
     public authService: AuthService,
     private alertModal: AlertModalService,
     private devolucionPreselect: DevolucionPreselectService,
-    private biometricService: BiometricService
+    private biometricService: BiometricService,
+    private roleSwitchService: RoleSwitchService
   ) {}
 
   ngOnInit() {
@@ -178,18 +180,20 @@ export class GestorDevolucionPage implements OnInit {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      this.router.navigate(['/tabs/vendedor-tab4']);
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/gestor-tab1']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab4']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab1']);
+      }
+    });
   }
 
   loadEntities() {

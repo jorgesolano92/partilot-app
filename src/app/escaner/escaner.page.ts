@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { VentasService } from '../core/services/ventas.service';
 import { CarteraService } from '../core/services/cartera.service';
 import { BiometricService } from '../core/services/biometric.service';
@@ -66,7 +67,8 @@ export class EscanerPage implements OnInit {
     public authService: AuthService,
     private ventasService: VentasService,
     private carteraService: CarteraService,
-    private biometricService: BiometricService
+    private biometricService: BiometricService,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   ngOnInit() {
@@ -95,17 +97,29 @@ export class EscanerPage implements OnInit {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    if (rol === 'usuario') {
-      this.router.navigate(['/tabs/tab5'], { replaceUrl: true });
-      return;
+    void this.roleSwitchService.confirmRoleChange(rol, this.getRolDesdeRuta(), () => {
+      if (rol === 'usuario') {
+        this.router.navigate(['/tabs/tab5'], { replaceUrl: true });
+        return;
+      }
+      if (rol === 'vendedor') {
+        this.router.navigate(['/tabs/vendedor-tab5'], { replaceUrl: true });
+        return;
+      }
+      if (rol === 'gestor') {
+        this.router.navigate(['/tabs/gestor-tab5'], { replaceUrl: true });
+      }
+    });
+  }
+
+  private getRolDesdeRuta(): 'usuario' | 'vendedor' | 'gestor' {
+    if (this.isRolActivo('gestor')) {
+      return 'gestor';
     }
-    if (rol === 'vendedor') {
-      this.router.navigate(['/tabs/vendedor-tab5'], { replaceUrl: true });
-      return;
+    if (this.isRolActivo('vendedor')) {
+      return 'vendedor';
     }
-    if (rol === 'gestor') {
-      this.router.navigate(['/tabs/gestor-tab5'], { replaceUrl: true });
-    }
+    return 'usuario';
   }
 
   isRolActivo(rol: 'usuario' | 'vendedor' | 'gestor'): boolean {

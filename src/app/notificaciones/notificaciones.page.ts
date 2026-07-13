@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import {
   ApiNotificationRow,
   InAppNotificationsService,
@@ -53,7 +54,8 @@ export class NotificacionesPage implements OnInit {
     private alertController: AlertController,
     private toastController: ToastController,
     public authService: AuthService,
-    private inAppNotifications: InAppNotificationsService
+    private inAppNotifications: InAppNotificationsService,
+    private roleSwitchService: RoleSwitchService
   ) {}
 
   ngOnInit(): void {
@@ -101,18 +103,20 @@ export class NotificacionesPage implements OnInit {
       return;
     }
 
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', tieneSeller ? 'true' : 'false');
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', tieneSeller ? 'true' : 'false');
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+      }
 
-    this.aplicarFiltro();
-    void this.router.navigate(['/tabs/notificaciones'], { replaceUrl: true });
+      this.aplicarFiltro();
+      void this.router.navigate(['/tabs/notificaciones'], { replaceUrl: true });
+    });
   }
 
   getDefaultBackHref(): string {

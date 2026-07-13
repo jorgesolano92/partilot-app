@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { VentasService } from '../core/services/ventas.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -41,7 +42,8 @@ export class GestorParticipacionesPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private ventasService: VentasService,
     public authService: AuthService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   ngOnInit() {
@@ -173,18 +175,20 @@ export class GestorParticipacionesPage implements OnInit, OnDestroy {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      this.router.navigate(['/tabs/vendedor-tab4']);
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/gestor-tab1']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab4']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab1']);
+      }
+    });
   }
 
   loadEntitiesGestor() {

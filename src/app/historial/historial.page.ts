@@ -5,6 +5,7 @@ import { VentasService } from '../core/services/ventas.service';
 import { Subscription } from 'rxjs';
 import { CarteraService } from '../core/services/cartera.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { environment } from '../../environments/environment';
 import { Capacitor } from '@capacitor/core';
 import {
@@ -39,7 +40,8 @@ export class HistorialPage implements OnInit, OnDestroy {
     private ventasService: VentasService,
     private carteraService: CarteraService,
     public authService: AuthService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   ngOnInit() {
@@ -85,22 +87,21 @@ export class HistorialPage implements OnInit, OnDestroy {
   canViewGestor(): boolean { return this.authService.canViewGestor(); }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      // Siempre navegar a la home de vendedor dentro de tabs
-      this.router.navigate(['/tabs/vendedor-tab3']);
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      // Siempre navegar a la home de usuario
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      // Siempre navegar a la home de gestor dentro de tabs
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab3']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   /** Para usuario: digitalizaciones, ventas digitales, regalos, cobros y donaciones. */

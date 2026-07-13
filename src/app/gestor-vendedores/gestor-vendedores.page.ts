@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { VentasService } from '../core/services/ventas.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { DevolucionPreselectService } from '../core/services/devolucion-preselect.service';
 import { environment } from '../../environments/environment';
@@ -54,6 +55,8 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
 
   partilotEmail = '';
   partilotEmailChecked: boolean | null = null;
+  /** Email guardado al pasar del buscador al modal de confirmación */
+  pendingInviteEmail = '';
   savingPartilot = false;
   savingExternal = false;
 
@@ -82,7 +85,8 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
     private ventasService: VentasService,
     public authService: AuthService,
     private alertModal: AlertModalService,
-    private devolucionPreselect: DevolucionPreselectService
+    private devolucionPreselect: DevolucionPreselectService,
+    private roleSwitchService: RoleSwitchService
   ) {}
 
   detectarRol(): void {
@@ -114,18 +118,20 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor'): void {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      this.router.navigate(['/tabs/vendedor-tab4']);
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab4']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   get uniqueGroupNames(): string[] {
@@ -524,11 +530,13 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
 
   closeMatchModal() {
     this.showMatchModal = false;
+    this.pendingInviteEmail = '';
     this.syncTabsStripForBottomOverlays();
   }
 
   closeNoMatchModal() {
     this.showNoMatchModal = false;
+    this.pendingInviteEmail = '';
     this.syncTabsStripForBottomOverlays();
   }
 
@@ -539,6 +547,7 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
       next: (res: any) => {
         const exists = res.exists === true;
         this.partilotEmailChecked = exists;
+        this.pendingInviteEmail = email;
         this.closeSearchUserSheet();
         if (exists) {
           this.showMatchModal = true;
@@ -554,8 +563,11 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
   }
 
   confirmMatchOne() {
-    const email = (this.partilotEmail || '').trim();
-    if (!email || !this.selectedEntity) return;
+    const email = (this.pendingInviteEmail || '').trim();
+    if (!email || !this.selectedEntity) {
+      this.showAlerta('Error', 'No se pudo recuperar el email. Vuelve a intentarlo.');
+      return;
+    }
     this.savingPartilot = true;
     this.ventasService.storeManagerExistingUser(this.selectedEntity.id, email).subscribe({
       next: (res: any) => {
@@ -573,10 +585,14 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
   }
 
   confirmMatchZero() {
-    const email = (this.partilotEmail || '').trim();
-    if (!email || !this.selectedEntity) return;
+    const email = (this.pendingInviteEmail || '').trim();
+    if (!email || !this.selectedEntity) {
+      this.showAlerta('Error', 'No se pudo recuperar el email. Vuelve a intentarlo.');
+      return;
+    }
+    // Igual que el panel web: 0 coincidencias también usa invitación SIPART solo con email.
     this.savingPartilot = true;
-    this.ventasService.storeManagerNewUser(this.selectedEntity.id, email).subscribe({
+    this.ventasService.storeManagerExistingUser(this.selectedEntity.id, email).subscribe({
       next: (res: any) => {
         this.savingPartilot = false;
         this.closeNoMatchModal();

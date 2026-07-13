@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angula
 import { Router, ActivatedRoute } from '@angular/router';
 import { VentasService } from '../core/services/ventas.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { BiometricService } from '../core/services/biometric.service';
 import { AlertController } from '@ionic/angular';
 import { environment } from '../../environments/environment';
@@ -74,7 +75,8 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
     private ventasService: VentasService,
     public authService: AuthService,
     private alertController: AlertController,
-    private biometricService: BiometricService
+    private biometricService: BiometricService,
+    private roleSwitchService: RoleSwitchService
   ) {}
 
   ngOnInit() {
@@ -179,18 +181,20 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      this.router.navigate(['/tabs/vendedor-tab1']);
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab1']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   /**

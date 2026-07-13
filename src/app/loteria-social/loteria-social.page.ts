@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 
 @Component({
   selector: 'app-loteria-social',
@@ -20,7 +21,8 @@ export class LoteriaSocialPage implements OnInit {
   constructor(
     private router: Router,
     private alertController: AlertController,
-    public authService: AuthService
+    public authService: AuthService,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   ngOnInit() {
@@ -46,21 +48,21 @@ export class LoteriaSocialPage implements OnInit {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      // Siempre navegar a la home de vendedor dentro de tabs
-      this.router.navigate(['/tabs/vendedor-tab3']);
-    } else if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      // Siempre navegar a la home de gestor dentro de tabs
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab3']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   cargarEntidades() {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { VentasService } from '../core/services/ventas.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { AlertController } from '@ionic/angular';
 import { Capacitor } from '@capacitor/core';
 import { environment } from '../../environments/environment';
@@ -103,7 +104,8 @@ export class VentaPage implements OnInit {
     private router: Router,
     private ventasService: VentasService,
     public authService: AuthService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   canViewUsuario(): boolean { return this.authService.canViewUsuario(); }
@@ -388,15 +390,17 @@ export class VentaPage implements OnInit {
   }
 
   cambiarRol(rol: string) {
-    if (rol === 'usuario') {
-      localStorage.setItem('rolActual', 'usuario');
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('rolActual', 'gestor');
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol as 'usuario' | 'vendedor' | 'gestor', 'vendedor', () => {
+      if (rol === 'usuario') {
+        localStorage.setItem('rolActual', 'usuario');
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('rolActual', 'gestor');
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   cambiarTipoParticipacion() {

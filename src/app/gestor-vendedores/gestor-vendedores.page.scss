@@ -558,6 +558,52 @@
   }
 }
 
+.invite-confirm-modal {
+  max-width: 360px;
+
+  .invite-confirm-text {
+    margin: 0 0 24px 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #495057;
+    text-align: center;
+
+    strong {
+      color: #212529;
+      font-weight: 600;
+      word-break: break-word;
+    }
+  }
+
+  .invite-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-invite-cancel {
+    --background: #ffffff;
+    --color: #212529;
+    --border-color: #212529;
+    --border-radius: 999px;
+    --border-width: 1px;
+    min-height: 48px;
+    margin: 0;
+    text-transform: none;
+    font-weight: 600;
+  }
+
+  .btn-invite-accept {
+    --background: #f49200;
+    --color: #ffffff;
+    --border-radius: 999px;
+    min-height: 48px;
+    margin: 0;
+    text-transform: none;
+    font-weight: 600;
+  }
+}
+
 // Modal Liquidación: mismo diseño que vendedor-tab1 (Resumen bottom sheet)
 .liquidation-resumen-overlay {
   position: fixed;

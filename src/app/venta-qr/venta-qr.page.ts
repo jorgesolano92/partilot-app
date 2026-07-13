@@ -4,6 +4,7 @@ import { AlertController } from '@ionic/angular';
 import { VentasService } from '../core/services/ventas.service';
 import { CarteraService } from '../core/services/cartera.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { BiometricService } from '../core/services/biometric.service';
 
 @Component({
@@ -56,7 +57,8 @@ export class VentaQRPage implements OnInit {
     private ventasService: VentasService,
     private carteraService: CarteraService,
     public authService: AuthService,
-    private biometricService: BiometricService
+    private biometricService: BiometricService,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   canViewUsuario(): boolean { return this.authService.canViewUsuario(); }
@@ -75,17 +77,17 @@ export class VentaQRPage implements OnInit {
   }
 
   cambiarRol(rol: string) {
-    if (rol === 'usuario') {
-      localStorage.setItem('rolActual', 'usuario');
-      localStorage.setItem('esVendedor', 'false');
-      // Siempre navegar a la home de usuario
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('rolActual', 'gestor');
-      localStorage.setItem('esVendedor', 'false');
-      // Siempre navegar a la home de gestor dentro de tabs
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol as 'usuario' | 'vendedor' | 'gestor', 'vendedor', () => {
+      if (rol === 'usuario') {
+        localStorage.setItem('rolActual', 'usuario');
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('rolActual', 'gestor');
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   cambiarModo(modo: 'unidad' | 'rango') {

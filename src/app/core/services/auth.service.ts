@@ -8,6 +8,8 @@ import { BiometricService } from './biometric.service';
 import { PushNotificationsService } from './push-notifications.service';
 import { LegalService } from './legal.service';
 
+export type AppRole = 'usuario' | 'vendedor' | 'gestor';
+
 export interface LoginResponse {
   success: boolean;
   token?: string;
@@ -247,6 +249,53 @@ export class AuthService {
   /** Puede ver pestaña Gestor (solo si está en managers). */
   canViewGestor(): boolean {
     return this.canManager();
+  }
+
+  /** Roles que el usuario puede usar en la app. */
+  getAvailableRoles(): AppRole[] {
+    const roles: AppRole[] = [];
+    if (this.canCliente()) {
+      roles.push('usuario');
+    }
+    if (this.canSeller()) {
+      roles.push('vendedor');
+    }
+    if (this.canManager()) {
+      roles.push('gestor');
+    }
+    return roles;
+  }
+
+  hasMultipleRoles(): boolean {
+    return this.getAvailableRoles().length > 1;
+  }
+
+  /** Ocultar selector si solo puede actuar como usuario/cliente. */
+  showRoleSelector(): boolean {
+    return this.hasMultipleRoles();
+  }
+
+  getCurrentRol(): AppRole {
+    const rol = localStorage.getItem('rolActual') as AppRole | null;
+    if (rol === 'vendedor' && !this.canSeller()) {
+      return 'usuario';
+    }
+    if (rol === 'gestor' && !this.canManager()) {
+      return this.canSeller() ? 'vendedor' : 'usuario';
+    }
+    if (rol === 'usuario' || rol === 'vendedor' || rol === 'gestor') {
+      return rol;
+    }
+    return 'usuario';
+  }
+
+  getRolDisplayName(rol: AppRole): string {
+    const labels: Record<AppRole, string> = {
+      usuario: 'Usuario',
+      vendedor: 'Vendedor',
+      gestor: 'Gestor',
+    };
+    return labels[rol];
   }
 
   getToken(): string | null {

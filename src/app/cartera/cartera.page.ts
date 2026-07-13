@@ -3,6 +3,7 @@ import { AlertController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { CarteraService } from '../core/services/cartera.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { environment } from '../../environments/environment';
 import { Subscription } from 'rxjs';
@@ -43,7 +44,8 @@ export class CarteraPage implements OnInit, OnDestroy {
     private carteraService: CarteraService,
     public authService: AuthService,
     private alertModal: AlertModalService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   ngOnInit() {
@@ -92,27 +94,25 @@ export class CarteraPage implements OnInit, OnDestroy {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    // Verificar que el usuario puede cambiar a ese rol
     const tieneSeller = this.authService.isSeller();
-    
-    // Solo permitir cambiar a vendedor si tiene seller guardado
     if (rol === 'vendedor' && !tieneSeller) {
-      return; // No permitir cambio a vendedor si no tiene seller
+      return;
     }
-    
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      this.router.navigate(['/tabs/vendedor-tab3']);
-    } else if (rol === 'usuario') {
-      // Mantener esVendedor como 'true' si tiene seller, para permitir volver a vendedor
-      localStorage.setItem('esVendedor', tieneSeller ? 'true' : 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'gestor') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/gestor-tab3']);
-    }
+
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab3']);
+      } else if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', tieneSeller ? 'true' : 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'gestor') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/gestor-tab3']);
+      }
+    });
   }
 
   loadParticipaciones() {

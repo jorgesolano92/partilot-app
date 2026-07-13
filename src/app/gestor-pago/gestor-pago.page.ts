@@ -4,6 +4,7 @@ import { ModalController } from '@ionic/angular';
 import { DevolutionsService } from '../core/services/devolutions.service';
 import { PagoService } from '../core/services/pago.service';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { BiometricService } from '../core/services/biometric.service';
 import { CarteraService } from '../core/services/cartera.service';
@@ -47,7 +48,8 @@ export class GestorPagoPage implements OnInit {
     public authService: AuthService,
     private alertModal: AlertModalService,
     private biometricService: BiometricService,
-    private carteraService: CarteraService
+    private carteraService: CarteraService,
+    private roleSwitchService: RoleSwitchService
   ) {}
 
   ngOnInit() {
@@ -77,15 +79,17 @@ export class GestorPagoPage implements OnInit {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    this.rolActual = rol;
-    localStorage.setItem('rolActual', rol);
-    if (rol === 'vendedor') {
-      this.router.navigate(['/tabs/vendedor-tab4']);
-    } else if (rol === 'usuario') {
-      this.router.navigate(['/tabs/tab3']);
-    } else {
-      this.router.navigate(['/tabs/gestor-tab1']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, this.rolActual, () => {
+      this.rolActual = rol;
+      localStorage.setItem('rolActual', rol);
+      if (rol === 'vendedor') {
+        this.router.navigate(['/tabs/vendedor-tab4']);
+      } else if (rol === 'usuario') {
+        this.router.navigate(['/tabs/tab3']);
+      } else {
+        this.router.navigate(['/tabs/gestor-tab1']);
+      }
+    });
   }
 
   irAManual() {

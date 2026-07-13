@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 
 @Component({
   selector: 'app-tab3',
@@ -12,7 +13,8 @@ export class Tab3Page {
 
   constructor(
     private router: Router,
-    public authService: AuthService
+    public authService: AuthService,
+    private roleSwitchService: RoleSwitchService
   ) {}
 
   verTutoriales() {
@@ -33,17 +35,19 @@ export class Tab3Page {
   }
 
   cambiarAVendedor() {
-    localStorage.setItem('rolActual', 'vendedor');
-    localStorage.setItem('esVendedor', 'true');
-    // Siempre navegar a la home de vendedor dentro de tabs
-    this.router.navigate(['/tabs/vendedor-tab3']);
+    void this.roleSwitchService.confirmRoleChange('vendedor', 'usuario', () => {
+      localStorage.setItem('rolActual', 'vendedor');
+      localStorage.setItem('esVendedor', 'true');
+      this.router.navigate(['/tabs/vendedor-tab3']);
+    });
   }
 
   cambiarAGestor() {
-    localStorage.setItem('rolActual', 'gestor');
-    localStorage.setItem('esVendedor', 'false');
-    // Siempre navegar a la home de gestor dentro de tabs
-    this.router.navigate(['/tabs/gestor-tab3']);
+    void this.roleSwitchService.confirmRoleChange('gestor', 'usuario', () => {
+      localStorage.setItem('rolActual', 'gestor');
+      localStorage.setItem('esVendedor', 'false');
+      this.router.navigate(['/tabs/gestor-tab3']);
+    });
   }
 
 }

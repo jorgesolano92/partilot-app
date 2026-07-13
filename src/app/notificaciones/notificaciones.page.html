@@ -20,7 +20,7 @@
 <ion-content [fullscreen]="true" class="notificaciones-content">
   <div class="notificaciones-container">
 
-    <div class="rol-selector" *ngIf="authService.canViewUsuario() || authService.canViewVendedor() || authService.canViewGestor()">
+    <div class="rol-selector" *ngIf="authService.showRoleSelector()">
       <ion-button
         *ngIf="authService.canViewUsuario()"
         class="rol-button"

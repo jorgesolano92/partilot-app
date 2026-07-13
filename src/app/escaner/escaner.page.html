@@ -19,7 +19,7 @@
 <ion-content [fullscreen]="true" class="escaner-content">
 
   <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->
-  <div class="rol-selector" *ngIf="!modoEscaneo && (authService.canCliente() || authService.canSeller() || authService.canManager())">
+  <div class="rol-selector" *ngIf="!modoEscaneo && (authService.showRoleSelector())">
     <ion-button
       *ngIf="authService.canCliente()"
       class="rol-button"

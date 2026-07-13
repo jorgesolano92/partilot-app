@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { RoleSwitchService } from '../core/services/role-switch.service';
 
 @Component({
   selector: 'app-gestor-home',
@@ -12,22 +13,25 @@ export class GestorHomePage implements OnInit {
 
   constructor(
     private router: Router,
-    public authService: AuthService
+    public authService: AuthService,
+    private roleSwitchService: RoleSwitchService
   ) { }
 
   ngOnInit() {
   }
 
   cambiarRol(rol: 'usuario' | 'vendedor' | 'gestor') {
-    localStorage.setItem('rolActual', rol);
-    
-    if (rol === 'usuario') {
-      localStorage.setItem('esVendedor', 'false');
-      this.router.navigate(['/tabs/tab3']);
-    } else if (rol === 'vendedor') {
-      localStorage.setItem('esVendedor', 'true');
-      this.router.navigate(['/tabs/vendedor-tab3']);
-    }
+    void this.roleSwitchService.confirmRoleChange(rol, 'gestor', () => {
+      localStorage.setItem('rolActual', rol);
+
+      if (rol === 'usuario') {
+        localStorage.setItem('esVendedor', 'false');
+        this.router.navigate(['/tabs/tab3']);
+      } else if (rol === 'vendedor') {
+        localStorage.setItem('esVendedor', 'true');
+        this.router.navigate(['/tabs/vendedor-tab3']);
+      }
+    });
   }
 
   verTutoriales() {

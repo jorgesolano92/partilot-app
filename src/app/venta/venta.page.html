@@ -31,7 +31,7 @@
   </ion-refresher>
   <div class="venta-page-container">
     <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->
-    <div class="rol-selector" *ngIf="authService.canCliente() || authService.canSeller() || authService.canManager()">
+    <div class="rol-selector" *ngIf="authService.showRoleSelector()">
       <ion-button 
         *ngIf="authService.canCliente()"
         class="rol-button" 

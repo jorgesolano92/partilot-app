@@ -33,7 +33,7 @@
   </ion-refresher>
   <div class="gestor-vendedores-page-container">
     <!-- Selector de rol (Usuario / Vendedor / Gestor) como en diseños -->
-    <div class="rol-selector" *ngIf="authService.canCliente() || authService.canSeller() || authService.canManager()">
+    <div class="rol-selector" *ngIf="authService.showRoleSelector()">
       <ion-button
         *ngIf="authService.canCliente()"
         class="rol-button"
@@ -482,25 +482,29 @@
 </div>
 
 <!-- Modal: 1 coincidencia -->
-<div class="modal-overlay action-sheet-overlay" *ngIf="showMatchModal" (click)="closeMatchModal()">
-  <div class="modal-container bottom-sheet-content action-sheet-container small-modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">¡Hay 1 coincidencia!</h2>
-    <p class="modal-text">Se enviará una invitación a este usuario para unirse a la entidad.</p>
-    <div class="modal-actions">
-      <ion-button fill="outline" (click)="closeMatchModal()">Cancelar</ion-button>
-      <ion-button fill="solid" (click)="confirmMatchOne()" [disabled]="savingPartilot">Aceptar</ion-button>
+<div class="modal-overlay modal-centered-overlay" *ngIf="showMatchModal" (click)="closeMatchModal()">
+  <div class="modal-centered-box invite-confirm-modal" (click)="$event.stopPropagation()">
+    <h2 class="modal-centered-title">¡Hay 1 coincidencia!</h2>
+    <p class="invite-confirm-text">Se enviará una invitación a <strong>{{ pendingInviteEmail }}</strong> para unirse a la entidad.</p>
+    <div class="invite-confirm-actions">
+      <ion-button expand="block" fill="outline" class="btn-invite-cancel" (click)="closeMatchModal()">Cancelar</ion-button>
+      <ion-button expand="block" class="btn-invite-accept" (click)="confirmMatchOne()" [disabled]="savingPartilot">
+        {{ savingPartilot ? 'Enviando...' : 'Aceptar' }}
+      </ion-button>
     </div>
   </div>
 </div>
 
 <!-- Modal: 0 coincidencias -->
-<div class="modal-overlay action-sheet-overlay" *ngIf="showNoMatchModal" (click)="closeNoMatchModal()">
-  <div class="modal-container bottom-sheet-content action-sheet-container small-modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title">¡Hay 0 coincidencias!</h2>
-    <p class="modal-text">Se enviará una invitación por email al registrarse como vendedor.</p>
-    <div class="modal-actions">
-      <ion-button fill="outline" (click)="closeNoMatchModal()">Cancelar</ion-button>
-      <ion-button fill="solid" (click)="confirmMatchZero()" [disabled]="savingPartilot">Aceptar</ion-button>
+<div class="modal-overlay modal-centered-overlay" *ngIf="showNoMatchModal" (click)="closeNoMatchModal()">
+  <div class="modal-centered-box invite-confirm-modal" (click)="$event.stopPropagation()">
+    <h2 class="modal-centered-title">¡Hay 0 coincidencias!</h2>
+    <p class="invite-confirm-text">Se enviará una invitación por email a <strong>{{ pendingInviteEmail }}</strong> al registrarse como vendedor.</p>
+    <div class="invite-confirm-actions">
+      <ion-button expand="block" fill="outline" class="btn-invite-cancel" (click)="closeNoMatchModal()">Cancelar</ion-button>
+      <ion-button expand="block" class="btn-invite-accept" (click)="confirmMatchZero()" [disabled]="savingPartilot">
+        {{ savingPartilot ? 'Enviando...' : 'Aceptar' }}
+      </ion-button>
     </div>
   </div>
 </div>
