@@ -1,7 +1,6 @@
 <ion-header [translucent]="false" class="venta-header">
   <ion-toolbar class="venta-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button *ngIf="!showEntitySelection && !showLotteriesList && !showVentaView && !showReserveSelection"></ion-back-button>
       <ion-button *ngIf="showLotteriesList && !showEntitySelection && entities.length > 1" fill="clear" (click)="backToEntities()">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>

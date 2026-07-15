@@ -1,7 +1,6 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button *ngIf="!showEntitySelection && !showTacosList && !showTacoDetail"></ion-back-button>
       <ion-button *ngIf="showTacosList && !showTacoDetail && entities.length > 1" fill="clear" (click)="backToEntities()">
         <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
       </ion-button>

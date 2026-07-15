@@ -461,7 +461,7 @@ export class GestorVendedoresPage implements OnInit, OnDestroy {
       window.history.back();
       return;
     }
-    this.router.navigate(['/tabs/gestor-tab3']);
+    void this.router.navigateByUrl(this.authService.getHomeTabHref());
   }
 
   loadSellers() {

@@ -46,7 +46,7 @@
           <ion-label>Sorteo</ion-label>
         </ion-item>
         
-        <ion-item routerLink="/loteria-social" routerDirection="root" (click)="cerrarMenu()">
+        <ion-item routerLink="/loteria-social" routerDirection="forward" (click)="cerrarMenu()">
           <ion-icon name="heart-outline" slot="start"></ion-icon>
           <ion-label>Lotería social</ion-label>
         </ion-item>
@@ -120,40 +120,40 @@
       </ng-container>
       
       <!-- Opciones comunes -->
-      <ion-item routerLink="/tabs/comprobar-participacion" routerDirection="root" (click)="cerrarMenu()">
+      <ion-item routerLink="/tabs/comprobar-participacion" routerDirection="forward" (click)="cerrarMenu()">
         <ion-icon name="ticket-outline" slot="start"></ion-icon>
         <ion-label>Comprobar participación</ion-label>
       </ion-item>
 
-      <ion-item routerLink="/tabs/comprobar-numero" routerDirection="root" (click)="cerrarMenu()">
+      <ion-item routerLink="/tabs/comprobar-numero" routerDirection="forward" (click)="cerrarMenu()">
         <ion-icon name="search-outline" slot="start"></ion-icon>
         <ion-label>Comprobar número</ion-label>
       </ion-item>
       
-      <ion-item routerLink="/preguntas-frecuentes" routerDirection="root" (click)="cerrarMenu()">
+      <ion-item routerLink="/preguntas-frecuentes" routerDirection="forward" (click)="cerrarMenu()">
         <ion-icon name="help-circle-outline" slot="start"></ion-icon>
         <ion-label>FAQ</ion-label>
       </ion-item>
       
-      <ion-item routerLink="/condiciones-legales" routerDirection="root" (click)="cerrarMenu()">
+      <ion-item routerLink="/condiciones-legales" routerDirection="forward" (click)="cerrarMenu()">
         <div class="icon-18-circle" slot="start">
           <span>18</span>
         </div>
         <ion-label>Juego Responsable</ion-label>
       </ion-item>
       
-      <ion-item routerLink="/tabs/notificaciones" routerDirection="root" (click)="cerrarMenu()" style="margin-top: 10vh;">
+      <ion-item routerLink="/tabs/notificaciones" routerDirection="forward" (click)="cerrarMenu()" style="margin-top: 10vh;">
         <ion-icon name="notifications-outline" slot="start"></ion-icon>
         <ion-label>Notificaciones</ion-label>
         <ion-badge *ngIf="notificacionesNoLeidas > 0" color="danger" slot="end">{{ notificacionesNoLeidas > 99 ? '99+' : notificacionesNoLeidas }}</ion-badge>
       </ion-item>
       
-      <ion-item routerLink="/condiciones-legales" routerDirection="root" (click)="cerrarMenu()">
+      <ion-item routerLink="/condiciones-legales" routerDirection="forward" (click)="cerrarMenu()">
         <ion-icon name="document-text-outline" slot="start"></ion-icon>
         <ion-label>Condiciones Legales</ion-label>
       </ion-item>
       
-      <ion-item routerLink="/perfil" routerDirection="root" (click)="cerrarMenu()">
+      <ion-item routerLink="/perfil" routerDirection="forward" (click)="cerrarMenu()">
         <ion-icon name="settings-outline" slot="start"></ion-icon>
         <ion-label>Perfil</ion-label>
       </ion-item>
@@ -162,7 +162,7 @@
   
   <!-- Información del usuario fuera del content -->
   <div class="user-info">
-    <ion-item button [routerLink]="['/perfil']" routerDirection="root" (click)="cerrarMenu()">
+    <ion-item button [routerLink]="['/perfil']" routerDirection="forward" (click)="cerrarMenu()">
       <ion-avatar slot="start">
         <img *ngIf="userImage" [src]="userImage" alt="{{ userName }}" (error)="onUserImageError()" />
         <div *ngIf="!userImage" class="avatar-placeholder">

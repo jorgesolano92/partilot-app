@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Location } from '@angular/common';
+import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-comprobar-numero',
@@ -27,7 +29,9 @@ export class ComprobarNumeroPage {
 
   constructor(
     private http: HttpClient,
-    private location: Location
+    private location: Location,
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ionViewWillEnter() {
@@ -95,9 +99,13 @@ export class ComprobarNumeroPage {
   goBack() {
     if (this.selectedLottery) {
       this.volverASeleccionarSorteo();
-    } else {
-      this.location.back();
+      return;
     }
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+    void this.router.navigateByUrl(this.authService.getHomeTabHref());
   }
 
   comprobar() {

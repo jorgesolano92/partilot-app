@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-preguntas-frecuentes',
@@ -12,7 +13,7 @@ export class PreguntasFrecuentesPage implements OnInit {
   preguntasFiltradas: any[] = [];
   terminoBusqueda: string = '';
 
-  constructor() { }
+  constructor(public authService: AuthService) { }
 
   ngOnInit() {
     this.cargarPreguntas();

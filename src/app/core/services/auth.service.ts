@@ -289,6 +289,18 @@ export class AuthService {
     return 'usuario';
   }
 
+  /** Home del rol activo (fallback de ion-back-button / goBack). */
+  getHomeTabHref(): string {
+    const rol = this.getCurrentRol();
+    if (rol === 'vendedor') {
+      return '/tabs/vendedor-tab3';
+    }
+    if (rol === 'gestor') {
+      return '/tabs/gestor-tab3';
+    }
+    return '/tabs/tab3';
+  }
+
   getRolDisplayName(rol: AppRole): string {
     const labels: Record<AppRole, string> = {
       usuario: 'Usuario',

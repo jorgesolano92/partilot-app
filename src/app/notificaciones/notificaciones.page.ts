@@ -120,14 +120,7 @@ export class NotificacionesPage implements OnInit {
   }
 
   getDefaultBackHref(): string {
-    const r = localStorage.getItem('rolActual') as RolNotificacion | null;
-    if (r === 'vendedor') {
-      return '/tabs/vendedor-tab3';
-    }
-    if (r === 'gestor') {
-      return '/tabs/gestor-tab3';
-    }
-    return '/tabs/tab3';
+    return this.authService.getHomeTabHref();
   }
 
   etiquetaRol(rol: RolNotificacion): string {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AuthService } from '../core/services/auth.service';
 import { LegalDocumentMeta, LegalService } from '../core/services/legal.service';
 
 @Component({
@@ -17,7 +18,8 @@ export class CondicionesLegalesPage implements OnInit {
 
   constructor(
     private legalService: LegalService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    public authService: AuthService
   ) {}
 
   ngOnInit() {

@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { AlertModalService } from '../core/services/alert-modal.service';
+import { AuthService } from '../core/services/auth.service';
 import { BiometricService } from '../core/services/biometric.service';
 import {
   ParticipationPublicCheckResponse,
@@ -30,6 +31,8 @@ export class ComprobarParticipacionPage implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private location: Location,
+    private router: Router,
+    private authService: AuthService,
     private publicCheckService: ParticipationPublicCheckService,
     private alertModal: AlertModalService,
     private biometricService: BiometricService
@@ -170,6 +173,10 @@ export class ComprobarParticipacionPage implements OnInit, OnDestroy {
       this.nuevaConsulta();
       return;
     }
-    this.location.back();
+    if (window.history.length > 1) {
+      this.location.back();
+      return;
+    }
+    void this.router.navigateByUrl(this.authService.getHomeTabHref());
   }
 }

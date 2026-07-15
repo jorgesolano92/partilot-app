@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-movimientos',
@@ -15,7 +16,7 @@ export class MovimientosPage implements OnInit {
   totalGastos: number = 0;
   balance: number = 0;
 
-  constructor() { }
+  constructor(public authService: AuthService) { }
 
   ngOnInit() {
     this.cargarMovimientos();

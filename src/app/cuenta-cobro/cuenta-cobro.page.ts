@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-cuenta-cobro',
@@ -17,7 +18,10 @@ export class CuentaCobroPage implements OnInit {
   totalPendiente: number = 0;
   balanceDisponible: number = 0;
 
-  constructor(private alertController: AlertController) { }
+  constructor(
+    private alertController: AlertController,
+    public authService: AuthService
+  ) { }
 
   ngOnInit() {
     this.cargarCobros();
