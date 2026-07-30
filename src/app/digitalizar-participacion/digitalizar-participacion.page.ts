@@ -64,7 +64,6 @@ export class DigitalizarParticipacionPage implements OnInit {
       }
     } catch (err: unknown) {
       if (this.biometricService.isScanCancelled(err)) {
-        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');

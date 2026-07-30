@@ -249,7 +249,6 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
     } catch (err) {
       this.loading = false;
       if (this.biometricService.isScanCancelled(err)) {
-        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       await this.mostrarAlerta('Error', 'No se pudo abrir el escáner.');
@@ -856,7 +855,6 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
@@ -884,7 +882,6 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
@@ -912,7 +909,6 @@ export class GestorAsignacionPage implements OnInit, AfterViewInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');

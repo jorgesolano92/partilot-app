@@ -892,7 +892,6 @@ export class GestorDevolucionPage implements OnInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
@@ -921,7 +920,6 @@ export class GestorDevolucionPage implements OnInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');
@@ -950,7 +948,6 @@ export class GestorDevolucionPage implements OnInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');

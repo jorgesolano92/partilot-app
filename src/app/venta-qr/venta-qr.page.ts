@@ -127,7 +127,6 @@ export class VentaQRPage implements OnInit {
     } catch (err) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
-        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       await this.mostrarAlerta('Error', 'No se pudo iniciar el escáner.');

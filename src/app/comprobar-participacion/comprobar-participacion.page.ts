@@ -205,7 +205,6 @@ export class ComprobarParticipacionPage implements OnInit, OnDestroy {
       await this.consultar(params.ref, params.sig ?? undefined);
     } catch (err: unknown) {
       if (this.biometricService.isScanCancelled(err)) {
-        await this.alertModal.show('Información', this.biometricService.scanCancelMessage);
         return;
       }
       await this.alertModal.show('Error', 'No se pudo iniciar el escáner.');

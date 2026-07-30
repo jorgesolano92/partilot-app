@@ -179,8 +179,8 @@ export class EscanerPage implements OnInit {
     } catch (err: unknown) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
+        // Cancelación del usuario: sin alerta
         mostrarVistaEscaneo = true;
-        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       mostrarVistaEscaneo = true;
@@ -514,8 +514,8 @@ export class EscanerPage implements OnInit {
     } catch (err: unknown) {
       console.error('Error escáner QR:', err);
       if (this.biometricService.isScanCancelled(err)) {
+        // Cancelación del usuario: sin alerta
         mostrarVistaEscaneo = true;
-        await this.mostrarAlerta('Información', this.biometricService.scanCancelMessage);
         return;
       }
       mostrarVistaEscaneo = true;
