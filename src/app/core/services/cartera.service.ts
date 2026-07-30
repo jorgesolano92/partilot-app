@@ -53,9 +53,13 @@ export class CarteraService {
     });
   }
 
-  /** Vincular participación a la cartera (digitalizar) */
-  linkToWallet(referencia: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/wallet/participations/link`, { referencia });
+  /** Vincular participación a la cartera (digitalizar). forManage = tras sorteo con premio. */
+  linkToWallet(referencia: string, options?: { forManage?: boolean }): Observable<any> {
+    const body: { referencia: string; for_manage?: boolean } = { referencia };
+    if (options?.forManage) {
+      body.for_manage = true;
+    }
+    return this.http.post(`${this.apiUrl}/wallet/participations/link`, body);
   }
 
   /** Guardar participación física en almacén (solo consulta) */

@@ -177,6 +177,68 @@
   }
 }
 
+.estado-sorteo-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+
+  &.pendiente {
+    background: #FFF3CD;
+    color: #856404;
+  }
+
+  &.sorteado {
+    background: #D4EDDA;
+    color: #155724;
+  }
+}
+
+.ticket-image-wrap {
+  margin-bottom: 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #E9ECEF;
+
+  .ticket-image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+.amount-breakdown {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.wallet-actions {
+  margin-top: 16px;
+  padding-top: 8px;
+
+  .mensaje-ya-posees {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #495057;
+  }
+
+  .login-hint {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #6c757d;
+    line-height: 1.4;
+  }
+
+  .wallet-loading {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+  }
+}
+
 .numbers-section {
   margin-bottom: 20px;
 

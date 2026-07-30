@@ -1,5 +1,7 @@
 .escaner-content {
   --background: #F5F6F7;
+  /* Evita que el footer de tabs tape el último botón al hacer scroll */
+  --padding-bottom: calc(88px + var(--ion-safe-area-bottom, 0px));
 }
 
 .rol-selector {
@@ -382,7 +384,8 @@
 
   .digitalizar-container {
     padding: 16px;
-    padding-bottom: 32px;
+    /* Espacio para tabs + safe area: el botón inferior no queda tapado */
+    padding-bottom: calc(120px + var(--ion-safe-area-bottom, 0px));
   }
 
   .paso-block {
@@ -416,6 +419,25 @@
       font-size: 14px;
       font-weight: 500;
       margin-bottom: 16px;
+    }
+
+    .estado-sorteo-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+
+      &.pendiente {
+        background: #FFF3CD;
+        color: #856404;
+      }
+
+      &.sorteado {
+        background: #D4EDDA;
+        color: #155724;
+      }
     }
 
     .ticket-image-wrap {
@@ -488,10 +510,17 @@
       --color: #212529;
       --border-width: 1px;
       --border-color: #E9ECEF;
+      --border-style: solid;
       height: 48px;
       font-weight: 500;
       text-transform: none;
       border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .btn-digitalizar-otra {
+      margin-top: 4px;
+      margin-bottom: 24px;
     }
   }
 }

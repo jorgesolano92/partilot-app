@@ -65,13 +65,21 @@
 
     <!-- Paso: Detalle de la participación (panel 3) -->
     <div class="paso-block detalle-block" *ngIf="paso === 'detalle' && participacion && !loading">
-      <h2 class="section-title">Digitalizar Participación</h2>
+      <h2 class="section-title">{{ canManage ? 'Gestionar Participación' : 'Digitalizar Participación' }}</h2>
       <p class="section-subtitle">Gestiona tus participaciones</p>
 
       <div class="entidad-badge">{{ participacion.entidad }}</div>
 
-      <div class="ticket-image-wrap" *ngIf="participacion.snapshot_path">
-        <img [src]="getImageUrl(participacion.snapshot_path)" [alt]="participacion.entidad" class="ticket-image">
+      <div class="estado-sorteo-badge" *ngIf="participacion.draw_status_label"
+           [class.sorteado]="participacion.draw_status === 'completed'"
+           [class.pendiente]="participacion.draw_status !== 'completed'">
+        {{ participacion.draw_status_label }}
+        <span *ngIf="participacion.draw_status === 'completed' && participacion.has_won"> · Premio €{{ participacion.premio | number:'1.2-2' }}</span>
+        <span *ngIf="participacion.draw_status === 'completed' && !participacion.has_won"> · Sin premio</span>
+      </div>
+
+      <div class="ticket-image-wrap" *ngIf="participationImageUrl()">
+        <img [src]="participationImageUrl()" [alt]="participacion.entidad" class="ticket-image">
       </div>
       <div class="ticket-number">{{ participacion.numeroReservado || participacion.numero }}</div>
 
@@ -103,6 +111,7 @@
       </div>
 
       <p class="mensaje-ya-posees" *ngIf="status === 'already_mine'">Ya la posees en tu cartera.</p>
+      <p class="mensaje-ya-posees" *ngIf="status === 'view_only' && mensajeError">{{ mensajeError }}</p>
 
       <div class="notice-box" *ngIf="canDigitalize">
         <p class="notice-text">{{ digitalizationNotice }}</p>
@@ -137,6 +146,14 @@
         [disabled]="!confirmStorageChecked"
         (click)="confirmarAlmacen()">
         Guardar en almacén
+      </ion-button>
+
+      <ion-button
+        class="btn-digitalizar gestionar-button"
+        expand="block"
+        *ngIf="canManage"
+        (click)="gestionarParticipacion()">
+        Gestionar participación
       </ion-button>
 
       <ion-button class="btn-block outline" expand="block" (click)="volver()">

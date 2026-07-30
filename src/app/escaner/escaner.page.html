@@ -241,10 +241,18 @@
   <div class="comprobacion-view usuario-digitalizar-style" *ngIf="!isVendedor && !modoEscaneo && ticketEscaneado">
     <div class="digitalizar-container">
       <div class="paso-block detalle-block">
-        <h2 class="section-title">Digitalizar Participación</h2>
+        <h2 class="section-title">{{ canManageScan ? 'Gestionar Participación' : 'Digitalizar Participación' }}</h2>
         <p class="section-subtitle">Gestiona tus participaciones</p>
 
         <div class="entidad-badge">{{ ticketEscaneado.entidad || '—' }}</div>
+
+        <div class="estado-sorteo-badge" *ngIf="ticketEscaneado.draw_status_label"
+             [class.sorteado]="ticketEscaneado.draw_status === 'completed'"
+             [class.pendiente]="ticketEscaneado.draw_status !== 'completed'">
+          {{ ticketEscaneado.draw_status_label }}
+          <span *ngIf="ticketEscaneado.draw_status === 'completed' && ticketEscaneado.has_won"> · Premio €{{ ticketEscaneado.premio | number:'1.2-2' }}</span>
+          <span *ngIf="ticketEscaneado.draw_status === 'completed' && !ticketEscaneado.has_won"> · Sin premio</span>
+        </div>
 
         <div class="ticket-image-wrap" *ngIf="imagenTicket">
           <img [src]="imagenTicket" alt="Ticket" class="ticket-image">
@@ -279,23 +287,25 @@
         </div>
 
         <p class="mensaje-ya-posees" *ngIf="status === 'already_mine'">Ya la posees en tu cartera.</p>
+        <p class="mensaje-ya-posees" *ngIf="status === 'view_only' && mensajeError">{{ mensajeError }}</p>
 
         <ion-button
           class="btn-digitalizar"
           expand="block"
-          *ngIf="status === 'can_link' && (!ticketEscaneado.premio || ticketEscaneado.premio === 0)"
+          *ngIf="canDigitalizeScan"
           (click)="digitalizar()">
           Digitalizar
         </ion-button>
         <ion-button
           class="btn-digitalizar gestionar-button"
           expand="block"
-          *ngIf="status === 'can_link' && ticketEscaneado.premio && ticketEscaneado.premio > 0"
+          *ngIf="canManageScan"
           (click)="gestionarPremio()">
-          Gestionar Premio
+          Gestionar participación
         </ion-button>
-        <ion-button class="btn-block outline" expand="block" (click)="volverAEscanear()">
-          Volver
+        <ion-button class="btn-block outline btn-digitalizar-otra" expand="block" (click)="volverAEscanear()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          Digitalizar otra
         </ion-button>
       </div>
     </div>

@@ -71,8 +71,20 @@
         <p><strong>Entidad:</strong> {{ ticket.reserve?.entity?.name || '—' }}</p>
       </div>
 
+      <div class="estado-sorteo-badge"
+           [class.sorteado]="drawStatus === 'completed'"
+           [class.pendiente]="drawStatus !== 'completed'">
+        {{ drawStatusLabel }}
+        <span *ngIf="prizeStatus === 'winner'"> · Premio {{ prizeInfo?.prize_amount | number:'1.2-2' }} €</span>
+        <span *ngIf="prizeStatus === 'no_prize'"> · Sin premio</span>
+      </div>
+
+      <div class="ticket-image-wrap" *ngIf="previewImageUrl">
+        <img [src]="previewImageUrl" alt="Participación" class="ticket-image">
+      </div>
+
       <div class="numbers-section">
-        <h3>Números de la participación</h3>
+        <h3>{{ ticket.reserve?.played_numbers_label || 'Números de la participación' }}</h3>
         <div class="numbers-grid">
           <div class="number-box" *ngFor="let num of reservationNumbers">
             {{ formatNumber(num) }}
@@ -91,8 +103,17 @@
         </div>
         <div class="detail-row">
           <span class="detail-label">Importe jugado</span>
-          <span class="detail-value">{{ ticket.set?.played_amount | number:'1.2-2' }} €</span>
+          <span class="detail-value">{{ (ticket.set?.total_played_amount ?? ticket.set?.played_amount) | number:'1.2-2' }} €</span>
         </div>
+        <div class="detail-row" *ngIf="(ticket.set?.donation_amount ?? 0) > 0">
+          <span class="detail-label">Donativo</span>
+          <span class="detail-value">{{ ticket.set?.donation_amount | number:'1.2-2' }} €</span>
+        </div>
+        <div class="detail-row" *ngIf="ticket.set?.total_amount != null">
+          <span class="detail-label">Importe total</span>
+          <span class="detail-value">{{ ticket.set?.total_amount | number:'1.2-2' }} €</span>
+        </div>
+        <p class="amount-breakdown" *ngIf="ticket.set?.amount_breakdown">{{ ticket.set?.amount_breakdown }}</p>
       </div>
 
       <div class="prize-box prize-winner" *ngIf="prizeStatus === 'winner'">
@@ -114,10 +135,56 @@
         <span class="status-badge status-no-prize">Sin premio</span>
       </div>
 
-      <div class="prize-box prize-pending" *ngIf="prizeStatus === 'pending'">
+      <div class="prize-box prize-pending" *ngIf="prizeStatus === 'pending_celebration'">
+        <h3>Sorteo pendiente de celebración</h3>
+        <p>El sorteo aún no se ha celebrado. Vuelve a consultar después de la fecha del sorteo para ver si tu participación tiene premio.</p>
+        <span class="status-badge status-pending">Sorteo no celebrado</span>
+      </div>
+
+      <div class="prize-box prize-pending" *ngIf="prizeStatus === 'pending_results'">
         <h3>Resultados pendientes</h3>
         <p>Los resultados de este sorteo aún no han sido publicados.</p>
         <span class="status-badge status-pending">Pendiente</span>
+      </div>
+
+      <div class="wallet-actions" *ngIf="isLoggedIn">
+        <p class="mensaje-ya-posees" *ngIf="walletStatus === 'already_mine'">Ya la posees en tu cartera.</p>
+        <p class="mensaje-ya-posees" *ngIf="walletStatus === 'view_only' && walletMessage">{{ walletMessage }}</p>
+
+        <div class="wallet-loading" *ngIf="walletLoading">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="btn-primary"
+          *ngIf="canDigitalize && !walletLoading"
+          (click)="digitalizar()">
+          Digitalizar
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          class="btn-outline"
+          *ngIf="canStoreInWarehouse && !walletLoading"
+          (click)="guardarAlmacen()">
+          Guardar en almacén
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          class="btn-primary"
+          *ngIf="canManage && !walletLoading"
+          (click)="gestionarParticipacion()">
+          Gestionar participación
+        </ion-button>
+      </div>
+
+      <div class="wallet-actions" *ngIf="!isLoggedIn">
+        <p class="login-hint">Inicia sesión para digitalizar o gestionar esta participación en tu cartera.</p>
+        <ion-button expand="block" class="btn-primary" (click)="irALogin()">
+          Iniciar sesión
+        </ion-button>
       </div>
 
       <ion-button expand="block" class="btn-outline" (click)="nuevaConsulta()">

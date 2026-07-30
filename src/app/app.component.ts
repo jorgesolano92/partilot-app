@@ -125,10 +125,11 @@ export class AppComponent implements OnInit, OnDestroy {
     if (!queryParams) return;
 
     const path = (this.router.url || '').split('?')[0];
-    if (path.startsWith('/registro') || path.startsWith('/tabs/comprobar-participacion')) {
+    if (path.startsWith('/registro')) {
       return;
     }
 
+    // Siempre navegar a comprobar con el ref (también si ya estás en esa pantalla).
     if (this.authService.isLoggedIn()) {
       this.router.navigate(['/tabs/comprobar-participacion'], {
         queryParams,

@@ -22,7 +22,7 @@ export class DigitalizarParticipacionPage implements OnInit {
   storageNotice = '';
   confirmDigitalizeChecked = false;
   confirmStorageChecked = false;
-  status: 'can_link' | 'already_mine' | 'already_other' | 'not_found' | null = null;
+  status: 'can_link' | 'already_mine' | 'already_other' | 'not_found' | 'view_only' | null = null;
   mensajeError = '';
   loading = false;
 
@@ -112,7 +112,17 @@ export class DigitalizarParticipacionPage implements OnInit {
       },
       error: async (err) => {
         this.loading = false;
-        const msg = err.error?.message || (err.status === 422
+        // view_only / can_link vienen en 200; 422 solo already_other / errores reales
+        const body = err.error;
+        if (body?.status === 'view_only' && body?.participation) {
+          this.participacion = body.participation;
+          this.walletOptions = body.wallet_options || null;
+          this.status = 'view_only';
+          this.mensajeError = body.message || '';
+          this.paso = 'detalle';
+          return;
+        }
+        const msg = body?.message || (err.status === 422
           ? 'La participación no se puede vincular porque ya se encuentra leída por otro usuario.'
           : 'No se encuentra la participación. Comprueba la referencia o el código QR.');
         await this.mostrarAlerta(err.status === 422 ? 'No se puede vincular' : 'No encontrada', msg);
@@ -176,6 +186,47 @@ export class DigitalizarParticipacionPage implements OnInit {
 
   get canStoreInWarehouse(): boolean {
     return this.status === 'can_link' && !!this.walletOptions?.can_store_in_warehouse;
+  }
+
+  get canManage(): boolean {
+    const hasPrize = (this.participacion?.premio ?? 0) > 0 || !!this.participacion?.has_won;
+    return !!this.walletOptions?.can_manage && hasPrize
+      && (this.status === 'can_link' || this.status === 'already_mine');
+  }
+
+  participationImageUrl(): string {
+    const p = this.participacion;
+    if (!p) return '';
+    return this.getImageUrl(p.preview_image_url || p.image || p.snapshot_path || '');
+  }
+
+  async gestionarParticipacion() {
+    if (!this.participacion?.referencia || !this.canManage) return;
+
+    if (this.status === 'already_mine') {
+      this.router.navigate(['/tabs/cobrar-gestionar']);
+      return;
+    }
+
+    const ok = await this.mostrarConfirmacion(
+      'Gestionar participación',
+      'Se añadirá a tu cartera para cobrar, donar o generar código. ¿Continuar?'
+    );
+    if (!ok) return;
+
+    this.loading = true;
+    this.carteraService.linkToWallet(this.participacion.referencia, { forManage: true }).subscribe({
+      next: async () => {
+        this.loading = false;
+        this.carteraService.notifyParticipacionesChanged();
+        this.reiniciarFlujo();
+        this.router.navigate(['/tabs/cobrar-gestionar']);
+      },
+      error: async (err) => {
+        this.loading = false;
+        await this.mostrarAlerta('Error', err.error?.message || 'No se pudo añadir.');
+      }
+    });
   }
 
   volver() {

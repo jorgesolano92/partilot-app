@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { AlertModalService } from '../core/services/alert-modal.service';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
@@ -55,7 +56,8 @@ export class EscanerPage implements OnInit {
 
   // Modo usuario: datos de participación consultada
   participacion: any = null;
-  status: 'can_link' | 'already_mine' | 'already_other' | 'not_found' | null = null;
+  walletOptions: any = null;
+  status: 'can_link' | 'already_mine' | 'already_other' | 'not_found' | 'view_only' | null = null;
   mensajeError = '';
 
   loading = false;
@@ -64,6 +66,7 @@ export class EscanerPage implements OnInit {
   constructor(
     private router: Router,
     private alertModal: AlertModalService,
+    private alertController: AlertController,
     public authService: AuthService,
     private ventasService: VentasService,
     private carteraService: CarteraService,
@@ -530,6 +533,7 @@ export class EscanerPage implements OnInit {
       next: async (res: any) => {
         this.loading = false;
         this.participacion = res.participation || null;
+        this.walletOptions = res.wallet_options || null;
         this.status = res.status || null;
         this.mensajeError = res.message || '';
         
@@ -540,23 +544,27 @@ export class EscanerPage implements OnInit {
           );
           this.participacion = null;
           this.status = null;
+          this.walletOptions = null;
           this.modoEscaneo = true;
         } else {
-          // Preparar datos para mostrar en la vista
           const p = this.participacion;
           this.ticketEscaneado = {
-            numero: p?.participation_code || p?.numero || referencia,
-            entidad: p?.entity_name || p?.entidad || p?.set?.reserve?.entity?.name || '—',
-            fechaSorteo: p?.draw_date ? new Date(p.draw_date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) : '—',
-            importeJugado: p?.played_amount ?? p?.importeJugado ?? 0,
-            donativo: p?.donation_amount ?? p?.donativo ?? 0,
-            importeTotal: p?.amount ?? p?.importeTotal ?? 0,
-            numeroParticipacion: p?.participation_code || referencia,
-            numeroReferencia: referencia,
-            premio: p?.prize_amount ?? p?.premio ?? 0,
+            numero: p?.numeroReservado || p?.numero || referencia,
+            entidad: p?.entidad || p?.entity_name || '—',
+            fechaSorteo: p?.fechaSorteo || '—',
+            importeJugado: p?.importeJugado ?? 0,
+            donativo: p?.donativo ?? 0,
+            importeTotal: p?.importeTotal ?? 0,
+            numeroParticipacion: p?.numeroParticipacion || '—',
+            numeroReferencia: p?.numeroReferencia || referencia,
+            premio: p?.premio ?? p?.prize_info?.prize_amount ?? 0,
+            has_won: !!p?.has_won,
+            draw_status: p?.draw_status || null,
+            draw_status_label: p?.draw_status_label || null,
             tipo: p?.type || 'social'
           };
-          this.imagenTicket = p?.image || p?.snapshot_path ? this.getImageUrl(p.image || p.snapshot_path) : null;
+          const img = p?.preview_image_url || p?.image || p?.snapshot_path || null;
+          this.imagenTicket = img ? this.getImageUrl(img) : null;
         }
       },
       error: async (err) => {
@@ -567,9 +575,20 @@ export class EscanerPage implements OnInit {
         await this.mostrarAlerta(err.status === 422 ? 'No se puede vincular' : 'No encontrada', msg);
         this.participacion = null;
         this.status = null;
+        this.walletOptions = null;
         this.modoEscaneo = true;
       }
     });
+  }
+
+  get canDigitalizeScan(): boolean {
+    return (this.status === 'can_link') && !!this.walletOptions?.can_digitalize;
+  }
+
+  get canManageScan(): boolean {
+    const hasPrize = (this.ticketEscaneado?.premio ?? 0) > 0 || !!this.ticketEscaneado?.has_won;
+    return !!this.walletOptions?.can_manage && hasPrize
+      && (this.status === 'can_link' || this.status === 'already_mine');
   }
 
   getImageUrl(path: string | null | undefined): string {
@@ -612,11 +631,10 @@ export class EscanerPage implements OnInit {
   }
 
   /**
-   * Tarea 4: Digitalizar usando API (linkToWallet). Flujo: checkByReference → detalle → linkToWallet → notifyParticipacionesChanged → Cartera.
-   * Sin localStorage para participaciones en este flujo.
+   * Digitalizar (antes del sorteo). Solo cambia estado al confirmar linkToWallet.
    */
   digitalizar() {
-    if (!this.ticketEscaneado) return;
+    if (!this.ticketEscaneado || !this.canDigitalizeScan) return;
     const referencia = this.ticketEscaneado.numeroReferencia;
     if (!referencia) {
       this.mostrarAlerta('Error', 'No hay referencia de participación.');
@@ -630,7 +648,7 @@ export class EscanerPage implements OnInit {
         this.loading = false;
         this.carteraService.notifyParticipacionesChanged();
         await this.alertModal.show('Digitalización exitosa', 'La participación ha sido guardada en tu cartera.');
-        this.reiniciarParaNuevaDigitalizacion();
+        this.reiniciarParaNuevaDigitalizacion(true);
       },
       error: async (err) => {
         this.loading = false;
@@ -754,11 +772,51 @@ export class EscanerPage implements OnInit {
     }
   }
 
+  /**
+   * Tras sorteo con premio: al confirmar, vincula a cartera y abre gestionar (cobrar/donar/código).
+   * Si se sale antes, no cambia el estado.
+   */
   async gestionarPremio() {
-    if (!this.ticketEscaneado || !this.ticketEscaneado.premio || this.ticketEscaneado.premio === 0) return;
+    if (!this.ticketEscaneado || !this.canManageScan) return;
 
-    // Navegar a gestión de premio
-    this.router.navigate(['/tabs/cobrar-gestionar']);
+    const referencia = this.ticketEscaneado.numeroReferencia;
+    if (!referencia) {
+      await this.mostrarAlerta('Error', 'No hay referencia de participación.');
+      return;
+    }
+
+    if (this.status === 'already_mine') {
+      this.router.navigate(['/tabs/cobrar-gestionar']);
+      return;
+    }
+
+    const confirmed = await new Promise<boolean>(async (resolve) => {
+      const alert = await this.alertController.create({
+        header: 'Gestionar participación',
+        message: 'Se añadirá a tu cartera para cobrar, donar o generar código. ¿Continuar?',
+        buttons: [
+          { text: 'Cancelar', role: 'cancel', handler: () => resolve(false) },
+          { text: 'Continuar', handler: () => resolve(true) },
+        ],
+      });
+      await alert.present();
+    });
+    if (!confirmed) return;
+
+    this.loading = true;
+    this.loadingMessage = 'Añadiendo a tu cartera...';
+    this.carteraService.linkToWallet(referencia, { forManage: true }).subscribe({
+      next: async () => {
+        this.loading = false;
+        this.carteraService.notifyParticipacionesChanged();
+        this.reiniciarParaNuevaDigitalizacion();
+        this.router.navigate(['/tabs/cobrar-gestionar']);
+      },
+      error: async (err) => {
+        this.loading = false;
+        await this.mostrarAlerta('Error', err.error?.message || 'No se pudo añadir la participación a tu cartera.');
+      }
+    });
   }
 
   volverAEscanear() {
@@ -770,6 +828,7 @@ export class EscanerPage implements OnInit {
     this.ticketEscaneado = null;
     this.imagenTicket = null;
     this.participacion = null;
+    this.walletOptions = null;
     this.status = null;
     this.mensajeError = '';
     this.modoEscaneo = true;
