@@ -3,11 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import {
-  ActionPerformed,
-  PushNotifications,
-  PushNotificationSchema,
-  Token,
-} from '@capacitor/push-notifications';
+  FirebaseMessaging,
+  Notification,
+  NotificationActionPerformedEvent,
+  NotificationReceivedEvent,
+  TokenReceivedEvent,
+} from '@capacitor-firebase/messaging';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
@@ -15,14 +16,16 @@ import { environment } from '../../../environments/environment';
 const STORAGE_KEY = 'fcm_device_token';
 
 /**
- * Push nativo vía Capacitor: en Android el token es FCM (tras configurar Firebase / google-services.json).
- * El envío al backend es opcional: define {@link environment.fcmDeviceRegisterPath}.
+ * Push nativo vía Firebase Cloud Messaging. El token es FCM en ambas plataformas:
+ * en Android por google-services.json y en iOS por GoogleService-Info.plist, donde
+ * el plugin registra el token APNs en FCM y devuelve el token FCM equivalente.
+ * El backend envía por FCM HTTP v1, así que necesita este token y no el de APNs.
  */
 @Injectable({ providedIn: 'root' })
 export class PushNotificationsService {
   private listenersAttached = false;
 
-  /** Último token de dispositivo (FCM en Android). */
+  /** Último token FCM del dispositivo. */
   readonly deviceToken$ = new BehaviorSubject<string | null>(null);
 
   constructor(
@@ -36,7 +39,7 @@ export class PushNotificationsService {
   }
 
   /**
-   * Solicita permisos, registra listeners y pide el token al sistema.
+   * Solicita permisos, registra listeners y pide el token FCM.
    * Idempotente: los listeners solo se registran una vez.
    */
   async initialize(): Promise<void> {
@@ -44,9 +47,9 @@ export class PushNotificationsService {
       return;
     }
 
-    let perm = await PushNotifications.checkPermissions();
+    let perm = await FirebaseMessaging.checkPermissions();
     if (perm.receive === 'prompt') {
-      perm = await PushNotifications.requestPermissions();
+      perm = await FirebaseMessaging.requestPermissions();
     }
     if (perm.receive !== 'granted') {
       console.warn('[Push] Permiso de notificaciones no concedido:', perm.receive);
@@ -55,26 +58,26 @@ export class PushNotificationsService {
 
     if (!this.listenersAttached) {
       this.listenersAttached = true;
-      await PushNotifications.addListener('registration', (t: Token) => {
-        const v = t.value;
-        if (v) {
-          localStorage.setItem(STORAGE_KEY, v);
-          this.deviceToken$.next(v);
-          this.syncTokenWithBackend();
+      await FirebaseMessaging.addListener('tokenReceived', (e: TokenReceivedEvent) => {
+        this.storeToken(e.token);
+      });
+      await FirebaseMessaging.addListener('notificationReceived', (e: NotificationReceivedEvent) => {
+        this.onForegroundNotification(e.notification);
+      });
+      await FirebaseMessaging.addListener(
+        'notificationActionPerformed',
+        (e: NotificationActionPerformedEvent) => {
+          this.onNotificationOpened(e.notification);
         }
-      });
-      await PushNotifications.addListener('registrationError', (err) => {
-        console.warn('[Push] Error de registro:', err.error);
-      });
-      await PushNotifications.addListener('pushNotificationReceived', (n: PushNotificationSchema) => {
-        this.onForegroundNotification(n);
-      });
-      await PushNotifications.addListener('pushNotificationActionPerformed', (a: ActionPerformed) => {
-        this.onNotificationOpened(a);
-      });
+      );
     }
 
-    await PushNotifications.register();
+    try {
+      const { token } = await FirebaseMessaging.getToken();
+      this.storeToken(token);
+    } catch (err) {
+      console.warn('[Push] No se pudo obtener el token FCM:', err);
+    }
   }
 
   /** Borra token local (p. ej. al cerrar sesión). No llama a FCM unregister. */
@@ -136,7 +139,17 @@ export class PushNotificationsService {
     );
   }
 
-  private onForegroundNotification(n: PushNotificationSchema): void {
+  /** Guarda el token y lo sincroniza con el backend si cambió. */
+  private storeToken(token: string | null | undefined): void {
+    if (!token || token === this.deviceToken$.value) {
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, token);
+    this.deviceToken$.next(token);
+    this.syncTokenWithBackend();
+  }
+
+  private onForegroundNotification(n: Notification): void {
     // Aquí puedes mostrar un toast Ionic o actualizar estado global
     if (n.title || n.body) {
       console.info('[Push] Notificación (primer plano):', n.title, n.body, n.data);
@@ -144,8 +157,8 @@ export class PushNotificationsService {
   }
 
   /** Al pulsar la notificación: prioriza `notification_id` → modal en bandeja; si no, `url`/`route`. */
-  private onNotificationOpened(a: ActionPerformed): void {
-    const data = a.notification?.data as Record<string, unknown> | undefined;
+  private onNotificationOpened(n: Notification): void {
+    const data = n?.data as Record<string, unknown> | undefined;
     if (!data) return;
     const nid = data['notification_id'] ?? data['notificationId'];
     if (nid != null && String(nid).trim() !== '') {
