@@ -1,0 +1,8 @@
+app_identifier("com.partilot.app") # Bundle Identifier de la app
+team_id("LZSGVZAVLQ")               # Apple Developer Team ID
+
+# Autenticación mediante App Store Connect API Key.
+# No hace falta apple_id / itc_team_id / team_id aquí:
+# el "issuer" de la API Key ya determina el equipo de Apple Developer.
+# Los valores de la API Key se cargan desde variables de entorno en el Fastfile
+# (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH). Ver fastlane/.env.example

@@ -1,0 +1,207 @@
+default_platform(:ios)
+
+APP_IDENTIFIER = "com.partilot.app"
+WORKSPACE      = "App.xcworkspace"
+SCHEME         = "App"
+XCODEPROJ      = "App.xcodeproj"
+
+# Carga la App Store Connect API Key desde variables de entorno (ver .env.example)
+def asc_api_key
+  app_store_connect_api_key(
+    key_id:        ENV["ASC_KEY_ID"],
+    issuer_id:     ENV["ASC_ISSUER_ID"],
+    key_filepath:  ENV["ASC_KEY_PATH"], # ruta al fichero .p8
+    in_house:      false
+  )
+end
+
+# match + firma manual del target App con el perfil descargado
+def apply_signing(key, type: "appstore", readonly: true)
+  match(
+    type:            type,
+    app_identifier:  APP_IDENTIFIER,
+    api_key:         key,
+    readonly:        readonly
+  )
+  update_code_signing_settings(
+    use_automatic_signing: false,
+    path:                  XCODEPROJ,
+    targets:               ["App"],
+    code_sign_identity:    "Apple Distribution",
+    profile_name:          ENV["sigh_#{APP_IDENTIFIER}_#{type}_profile-name"]
+  )
+end
+
+platform :ios do
+  desc "Genera/sincroniza certificados y provisioning profiles (appstore)"
+  lane :certificates do
+    key = asc_api_key
+    match(type: "appstore", app_identifier: APP_IDENTIFIER, api_key: key, readonly: false)
+    UI.success("Certificados y perfil de App Store listos en el almacén de match ✅")
+  end
+
+  desc "Genera el perfil de desarrollo (requiere >=1 dispositivo registrado en la cuenta)"
+  lane :certificates_dev do
+    key = asc_api_key
+    match(type: "development", app_identifier: APP_IDENTIFIER, api_key: key, readonly: false)
+    UI.success("Certificado y perfil de desarrollo listos ✅")
+  end
+
+  desc "Revoca los certificados de desarrollo (para liberar cupo). NO toca los de distribución."
+  lane :revoke_dev_certs do
+    require 'spaceship'
+    p8 = File.expand_path("secrets/AuthKey_#{ENV['ASC_KEY_ID']}.p8", __dir__)
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id:    ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      filepath:  p8
+    )
+    Spaceship::ConnectAPI.token = token
+    certs = Spaceship::ConnectAPI::Certificate.all
+    certs.each { |c| UI.message("#{c.id}  #{c.certificate_type}  #{c.display_name}") }
+    dev = certs.select { |c| c.certificate_type.to_s =~ /DEVELOPMENT/ }
+    dev.each do |c|
+      UI.important("Revocando #{c.id} (#{c.certificate_type})")
+      c.delete!
+    end
+    UI.success("Revocados #{dev.size} certificados de desarrollo ✅")
+  end
+
+  desc "Habilita 'Associated Domains' en el App ID y regenera los perfiles (para deeplinks/Universal Links)"
+  lane :enable_deeplinks do
+    key = asc_api_key
+    require 'spaceship'
+    p8 = File.expand_path("secrets/AuthKey_#{ENV['ASC_KEY_ID']}.p8", __dir__)
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: ENV["ASC_KEY_ID"], issuer_id: ENV["ASC_ISSUER_ID"], filepath: p8
+    )
+    Spaceship::ConnectAPI.token = token
+    bundle = Spaceship::ConnectAPI::BundleId.all.find { |b| b.identifier == APP_IDENTIFIER }
+    UI.user_error!("No se encontró el App ID #{APP_IDENTIFIER}") unless bundle
+    begin
+      bundle.create_capability("ASSOCIATED_DOMAINS")
+      UI.success("Associated Domains habilitado en el App ID ✅")
+    rescue => e
+      UI.important("Associated Domains ya estaba habilitado (o aviso): #{e.message}")
+    end
+    # Regenerar perfiles con la nueva capability
+    match(type: "appstore",    app_identifier: APP_IDENTIFIER, api_key: key, force: true, readonly: false)
+    match(type: "development", app_identifier: APP_IDENTIFIER, api_key: key, force: true, force_for_new_devices: true, readonly: false)
+    UI.success("Perfiles regenerados con Associated Domains ✅")
+  end
+
+  desc "Registra el iPhone conectado, firma en desarrollo, compila e instala en el dispositivo"
+  lane :device do
+    key = asc_api_key
+    register_devices(
+      devices: { "iPhone de Illya" => "00008110-001168DE267A201E" },
+      api_key: key
+    )
+    match(
+      type:                  "development",
+      app_identifier:        APP_IDENTIFIER,
+      api_key:               key,
+      force_for_new_devices: true,
+      readonly:              false
+    )
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path:                  XCODEPROJ,
+      targets:               ["App"],
+      code_sign_identity:    "Apple Development",
+      profile_name:          ENV["sigh_#{APP_IDENTIFIER}_development_profile-name"]
+    )
+    build_app(
+      workspace:     WORKSPACE,
+      scheme:        SCHEME,
+      export_method: "development",
+      clean:         true,
+      output_name:   "App-dev.ipa"
+    )
+    ipa = lane_context[SharedValues::IPA_OUTPUT_PATH]
+    UI.message("Instalando #{ipa} en el iPhone…")
+    sh("xcrun devicectl device install app --device 00008110-001168DE267A201E '#{ipa}'")
+    UI.success("App instalada en el iPhone 📱✅")
+  end
+
+  desc "Compila un .ipa firmado para App Store (sin subir)"
+  lane :build do
+    key = asc_api_key
+    apply_signing(key, type: "appstore", readonly: true)
+    build_app(
+      workspace:     WORKSPACE,
+      scheme:        SCHEME,
+      export_method: "app-store",
+      clean:         true
+    )
+  end
+
+  desc "Compila y sube a TestFlight"
+  lane :beta do
+    key = asc_api_key
+    apply_signing(key, type: "appstore", readonly: true)
+    increment_build_number(
+      xcodeproj:    XCODEPROJ,
+      build_number: latest_testflight_build_number(api_key: key, app_identifier: APP_IDENTIFIER, initial_build_number: 0) + 1
+    )
+    build_app(
+      workspace:     WORKSPACE,
+      scheme:        SCHEME,
+      export_method: "app-store",
+      clean:         true
+    )
+    upload_to_testflight(
+      api_key:                          key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Compila, sube el binario y lo ENVÍA A REVISIÓN de App Store"
+  lane :release do
+    key = asc_api_key
+    apply_signing(key, type: "appstore", readonly: true)
+    increment_build_number(
+      xcodeproj:    XCODEPROJ,
+      build_number: latest_testflight_build_number(api_key: key, app_identifier: APP_IDENTIFIER, initial_build_number: 0) + 1
+    )
+    build_app(
+      workspace:     WORKSPACE,
+      scheme:        SCHEME,
+      export_method: "app-store",
+      clean:         true
+    )
+    upload_to_app_store(
+      api_key:                            key,
+      app_identifier:                     APP_IDENTIFIER,
+      submit_for_review:                  true,
+      automatic_release:                  true,   # publica automáticamente al ser aprobada
+      force:                              true,   # no abrir el HTML de confirmación
+      skip_metadata:                      true,   # usa los metadatos ya cargados en App Store Connect
+      skip_screenshots:                   true,
+      precheck_include_in_app_purchases:  false,
+      submission_information:             { add_id_info_uses_idfa: false }
+    )
+    UI.success("Build enviado a revisión de App Store 🚀")
+  end
+
+  desc "Envía a revisión el ÚLTIMO build ya subido (sin recompilar)"
+  lane :submit_review do
+    key = asc_api_key
+    build_no = latest_testflight_build_number(api_key: key, app_identifier: APP_IDENTIFIER).to_s
+    UI.message("Enviando a revisión el build #{build_no}…")
+    upload_to_app_store(
+      api_key:                            key,
+      app_identifier:                     APP_IDENTIFIER,
+      build_number:                       build_no,
+      skip_binary_upload:                 true,   # el binario ya está subido (p.ej. por 'beta')
+      submit_for_review:                  true,
+      automatic_release:                  true,
+      force:                              true,
+      skip_metadata:                      true,
+      skip_screenshots:                   true,
+      precheck_include_in_app_purchases:  false,
+      submission_information:             { add_id_info_uses_idfa: false }
+    )
+    UI.success("Build #{build_no} enviado a revisión de App Store 🚀")
+  end
+end

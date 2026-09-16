@@ -1,0 +1,27 @@
+# Configuración de Fastlane match (gestión de certificados y provisioning).
+#
+# ⚠️ ALMACÉN PENDIENTE DE DECIDIR.
+# match guarda los certificados CIFRADOS en un almacén remoto compartido.
+# Elige UNO y descomenta el bloque correspondiente:
+
+# --- Opción 1: Repositorio Git privado (lo más común) --------------------
+# Crea un repo Git PRIVADO y vacío solo para certificados y pon su URL aquí
+# (o exporta MATCH_GIT_URL en el entorno / .env).
+storage_mode("git")
+git_url(ENV["MATCH_GIT_URL"]) # p.ej. "git@github.com:tu-org/partilot-certs.git"
+
+# --- Opción 2: Google Cloud Storage --------------------------------------
+# storage_mode("google_cloud")
+# google_cloud_bucket_name("tu-bucket-certs")
+# google_cloud_keys_file("gc_keys.json")
+
+# --- Opción 3: Amazon S3 -------------------------------------------------
+# storage_mode("s3")
+# s3_bucket("tu-bucket-certs")
+# s3_region("eu-west-1")
+# -------------------------------------------------------------------------
+
+app_identifier(["com.partilot.app"])
+type("appstore") # tipo por defecto; el Fastfile pide development y appstore explícitamente
+
+# La contraseña que cifra el almacén: exporta MATCH_PASSWORD en el entorno / .env
