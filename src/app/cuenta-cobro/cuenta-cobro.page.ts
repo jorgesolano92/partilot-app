@@ -47,32 +47,6 @@ export class CuentaCobroPage implements OnInit {
         fechaCobro: venta.estado === 'pagado' ? venta.fecha : null
       }));
 
-      // Si no hay cobros, agregar datos de ejemplo
-      if (this.cobros.length === 0) {
-        this.cobros = [
-          {
-            id: 1,
-            ventaId: 1,
-            fecha: new Date('2024-01-17T10:30:00'),
-            cliente: 'Juan Pérez',
-            monto: 5.00,
-            metodoPago: 'Efectivo',
-            estado: 'cobrado',
-            fechaCobro: new Date('2024-01-17T10:30:00')
-          },
-          {
-            id: 2,
-            ventaId: 2,
-            fecha: new Date('2024-01-17T09:15:00'),
-            cliente: 'María García',
-            monto: 10.00,
-            metodoPago: 'Tarjeta',
-            estado: 'pendiente',
-            fechaCobro: null
-          }
-        ];
-      }
-
       this.calcularResumen();
       this.filtrarCobros();
     } catch (error) {

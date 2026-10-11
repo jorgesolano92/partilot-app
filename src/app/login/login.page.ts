@@ -126,9 +126,47 @@ export class LoginPage {
       },
       error: async (err) => {
         this.loading = false;
+        if (err.error?.deletion_reactivable) {
+          await this.ofrecerReactivacion(err.error?.deletion_scheduled_at);
+          return;
+        }
         const message = err.error?.message || 'Error de conexión. Verifica la URL de la API.';
         await this.mostrarAlerta('Error', message);
       }
+    });
+  }
+
+  private async ofrecerReactivacion(scheduledAt?: string | null) {
+    const fecha = scheduledAt ? new Date(scheduledAt).toLocaleDateString('es-ES') : null;
+    const alert = await this.alertController.create({
+      header: 'Cuenta en proceso de baja',
+      message: fecha
+        ? `Solicitaste eliminar tu cuenta. Se borrará definitivamente el ${fecha}. ¿Quieres reactivarla?`
+        : 'Solicitaste eliminar tu cuenta. ¿Quieres reactivarla?',
+      buttons: [
+        { text: 'No', role: 'cancel' },
+        {
+          text: 'Reactivar cuenta',
+          handler: () => {
+            this.reactivarCuenta();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private reactivarCuenta() {
+    this.loading = true;
+    this.authService.cancelAccountDeletion(this.email.trim(), this.password).subscribe({
+      next: () => {
+        this.loading = false;
+        this.onSubmit();
+      },
+      error: async (err) => {
+        this.loading = false;
+        await this.mostrarAlerta('Error', err.error?.message || 'No se pudo reactivar la cuenta.');
+      },
     });
   }
 

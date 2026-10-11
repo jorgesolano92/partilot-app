@@ -359,7 +359,7 @@
           <p>Tu código de recarga es:</p>
           <div class="codigo-display">{{ codigoRecarga }}</div>
           <p class="codigo-info">
-            Podrás canjearlo en la web de la Administración El Búho Lotero: <strong>web.elbuholotero.es</strong>
+            Podrás canjearlo en la Administración de Lotería<ng-container *ngIf="resultadoDonacion?.administracion_nombre"> <strong>{{ resultadoDonacion.administracion_nombre }}</strong></ng-container>.
           </p>
           <p class="codigo-info">
             También puedes consultar el código en la sección "Movimientos" de la app. Además, te lo hemos enviado por email para que lo tengas siempre a mano.

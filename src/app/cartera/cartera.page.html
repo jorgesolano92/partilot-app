@@ -246,6 +246,12 @@
                 Rechazar
               </ion-button>
             </div>
+            <div class="gift-actions" *ngIf="puedeCancelarRegalo(participacion)">
+              <ion-button fill="outline" expand="block" color="medium" (click)="cancelarRegalo(participacion, $event)">
+                <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+                Cancelar regalo
+              </ion-button>
+            </div>
             <ion-button
               *ngIf="puedeRegalar(participacion)"
               class="regalar-button"

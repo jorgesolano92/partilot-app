@@ -21,7 +21,8 @@
     </div>
 
     <div class="blocked-card" *ngIf="!s.can_request && !s.deletion_requested_at">
-      <p>{{ s.ui.blocked_message }}</p>
+      <p *ngIf="s.seller_block_message">{{ s.seller_block_message }}</p>
+      <p *ngIf="!s.seller_block_message || s.pending_prize_count > 0">{{ s.ui.blocked_message }}</p>
       <p *ngIf="s.pending_prize_count > 0">
         Participaciones premiadas pendientes: <strong>{{ s.pending_prize_count }}</strong>
       </p>

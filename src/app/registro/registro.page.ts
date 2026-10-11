@@ -13,6 +13,8 @@ import { LegalService, LegalClientConfig } from '../core/services/legal.service'
 export class RegistroPage implements OnInit {
   email = '';
   password = '';
+  passwordConfirm = '';
+  readonly minPasswordLength = 8;
   fechaNacimiento = '';
   aceptarCondiciones = false;
   loading = false;
@@ -53,8 +55,17 @@ export class RegistroPage implements OnInit {
       this.aceptarCondiciones &&
       !!this.email.trim() &&
       !!this.password &&
+      !!this.passwordConfirm &&
       !!this.fechaNacimiento
     );
+  }
+
+  get passwordTooShort(): boolean {
+    return !!this.password && this.password.length < this.minPasswordLength;
+  }
+
+  get passwordMismatch(): boolean {
+    return !!this.passwordConfirm && this.password !== this.passwordConfirm;
   }
 
   togglePassword() {
@@ -64,6 +75,14 @@ export class RegistroPage implements OnInit {
   async onSubmit() {
     if (!this.email.trim() || !this.password) {
       await this.mostrarAlerta('Atención', 'Introduce email y contraseña.');
+      return;
+    }
+    if (this.password.length < this.minPasswordLength) {
+      await this.mostrarAlerta('Atención', `La contraseña debe tener al menos ${this.minPasswordLength} caracteres.`);
+      return;
+    }
+    if (this.password !== this.passwordConfirm) {
+      await this.mostrarAlerta('Atención', 'Las contraseñas no coinciden.');
       return;
     }
     if (!this.fechaNacimiento) {
