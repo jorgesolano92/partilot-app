@@ -458,7 +458,7 @@
 
       <div class="forma-pago-section">
         <h3 class="forma-pago-title">Forma de Pago</h3>
-        <p class="forma-pago-subtitle">Elige cómo has entregado ya este dinero a la entidad. Si aún lo tienes tú, pulsa «Aún no entregado»: quedará pendiente y se liquida en la devolución.</p>
+        <p class="forma-pago-subtitle">Elige cómo has entregado ya este dinero a la entidad. Si aún lo tienes tú, pulsa «Omitir Forma de pago»: quedará pendiente y se liquida en la devolución.</p>
         
         <div class="opciones-pago">
           <ion-button 
@@ -490,7 +490,7 @@
             [class.selected]="formaPago === 'omitir'"
             (click)="seleccionarFormaPago('omitir')">
             <ion-icon name="close-circle-outline"></ion-icon>
-            <ion-label>Aún no entregado</ion-label>
+            <ion-label>Omitir Forma de pago</ion-label>
           </ion-button>
         </div>
       </div>
