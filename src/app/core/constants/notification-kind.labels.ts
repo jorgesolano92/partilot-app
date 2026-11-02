@@ -12,7 +12,11 @@ export const NOTIFICATION_KIND_LABELS: Record<string, string> = {
   regalo_aceptado: 'Regalo aceptado',
   cobro_registrado: 'Cobro',
   invitacion_vendedor: 'Invitación vendedor',
+  vendedor_invitacion_aceptada: 'Invitación aceptada',
+  vendedor_invitacion_rechazada: 'Invitación rechazada',
+  vendedor_invitacion_confirmada: 'Eres vendedor',
   asignacion_participaciones: 'Asignación',
+  liquidacion_vendedor: 'Liquidación',
   resultados_sorteo: 'Resultados',
   // Legacy / mock UI (capturas)
   cobro: 'Cobro',

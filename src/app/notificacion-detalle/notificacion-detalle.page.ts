@@ -30,6 +30,9 @@ export class NotificacionDetallePage implements OnInit {
     entidadNombre?: string;
     invitadorTexto?: string;
     entity_image?: string | null;
+    roleInvitationKey?: string | null;
+    assignmentState?: string | null;
+    actionable?: boolean;
   } | null = null;
 
   loading = true;
@@ -56,14 +59,17 @@ export class NotificacionDetallePage implements OnInit {
     return {
       id: n.id,
       tipo: n.tipo,
-      titulo: n.titulo,
-      mensaje: n.mensaje,
+      titulo: n.titulo || notificationKindLabel(n.tipo),
+      mensaje: n.mensaje || '',
       fecha: n.fecha,
       leida: n.leida,
       detalle: n.detalle ?? undefined,
       entidadNombre: n.entidadNombre ?? undefined,
       invitadorTexto: n.invitadorTexto ?? undefined,
       entity_image: n.entity_image,
+      roleInvitationKey: n.roleInvitationKey ?? null,
+      assignmentState: n.assignmentState ?? null,
+      actionable: n.actionable === true,
     };
   }
 
@@ -92,7 +98,15 @@ export class NotificacionDetallePage implements OnInit {
   }
 
   esInvitacionVendedor(): boolean {
-    return !!this.notificacion && this.notificacion.tipo === 'invitacion_vendedor';
+    const n = this.notificacion;
+    return (
+      !!n &&
+      n.tipo === 'invitacion_vendedor' &&
+      (n.actionable === true ||
+        n.assignmentState === 'pending' ||
+        n.assignmentState === 'sent' ||
+        Boolean(n.roleInvitationKey))
+    );
   }
 
   mostrarAcciones(): boolean {
@@ -124,11 +138,13 @@ export class NotificacionDetallePage implements OnInit {
   }
 
   irGestionInvitacion(): void {
-    void this.router.navigate(['/aceptacion-rol']);
+    const key = this.notificacion?.roleInvitationKey;
+    void this.router.navigate(['/aceptacion-rol'], key ? { queryParams: { key } } : {});
   }
 
   irCondicionesVendedor(): void {
-    void this.router.navigate(['/aceptacion-rol']);
+    const key = this.notificacion?.roleInvitationKey;
+    void this.router.navigate(['/aceptacion-rol'], key ? { queryParams: { key } } : {});
   }
 
   /** Kind API normalizado para iconos y botones (cobro_registrado → cobro). */

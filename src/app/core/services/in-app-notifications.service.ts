@@ -15,6 +15,10 @@ export interface ApiNotificationRow {
   entidadNombre?: string | null;
   invitadorTexto?: string | null;
   entity_image?: string | null;
+  roleInvitationKey?: string | null;
+  assignmentState?: string | null;
+  actionable?: boolean;
+  deepLink?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })

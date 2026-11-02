@@ -360,4 +360,13 @@ export class AuthService {
       })
     );
   }
+
+  /** Activa el perfil vendedor en la sesión local (tras aceptar invitación). */
+  activateSellerModeFromSession(): void {
+    if (!this.isSeller()) {
+      return;
+    }
+    localStorage.setItem('rolActual', 'vendedor');
+    localStorage.setItem('esVendedor', 'true');
+  }
 }
