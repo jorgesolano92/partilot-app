@@ -142,6 +142,8 @@ export interface AccountDeletionStatus {
 
   pending_prize_count: number;
 
+  seller_block_message?: string | null;
+
   deletion_requested_at?: string | null;
 
   deletion_scheduled_at?: string | null;

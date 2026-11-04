@@ -125,6 +125,13 @@ export class AceptacionRolPage implements OnInit {
   }
 
   private continuarTrasRespuesta(action: 'accept' | 'reject'): void {
+    if (action === 'accept' && this.invitationKey.startsWith('seller-')) {
+      this.authService.activateSellerModeFromSession();
+    } else if (action === 'accept' && this.invitationKey.startsWith('manager-') && this.authService.isManager()) {
+      localStorage.setItem('rolActual', 'gestor');
+      localStorage.setItem('esVendedor', 'false');
+    }
+
     this.legalService.getPendingAcceptances().subscribe((pending) => {
       const restantes = pending.filter((p) => p.key !== this.invitationKey);
       if (restantes.length > 0) {

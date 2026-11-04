@@ -110,10 +110,6 @@ export class PerfilPage implements OnInit {
     this.router.navigate(['/gestor-participaciones']);
   }
 
-  goToCuentaCobro() {
-    this.router.navigate(['/cuenta-cobro']);
-  }
-
   goToConfigVenta() {
     this.router.navigate(['/config-venta']);
   }

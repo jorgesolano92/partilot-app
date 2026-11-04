@@ -77,6 +77,7 @@ export class AuthService {
     const body: Record<string, unknown> = {
       email,
       password,
+      password_confirmation: password,
       fecha_nacimiento: fechaNacimiento,
       aceptar_condiciones: true,
     };
@@ -105,6 +106,14 @@ export class AuthService {
           this.pushNotificationsService.syncTokenWithBackend();
         }
       })
+    );
+  }
+
+  /** Anula una solicitud de baja dentro del periodo de gracia (sin sesión: la cuenta no admite tokens). */
+  cancelAccountDeletion(email: string, password: string): Observable<{ success: boolean; message?: string }> {
+    return this.http.post<{ success: boolean; message?: string }>(
+      `${this.apiUrl}/account/deletion/cancel`,
+      { email, password }
     );
   }
 
@@ -350,5 +359,14 @@ export class AuthService {
         }
       })
     );
+  }
+
+  /** Activa el perfil vendedor en la sesión local (tras aceptar invitación). */
+  activateSellerModeFromSession(): void {
+    if (!this.isSeller()) {
+      return;
+    }
+    localStorage.setItem('rolActual', 'vendedor');
+    localStorage.setItem('esVendedor', 'true');
   }
 }

@@ -94,6 +94,16 @@
   }
 }
 
+.field-hint {
+  margin: -16px 0 18px 4px;
+  font-size: 0.8rem;
+  color: #888;
+
+  &.field-error {
+    color: #d32f2f;
+  }
+}
+
 .input-wrap-date {
   .date-placeholder {
     position: absolute;

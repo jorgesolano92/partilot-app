@@ -103,6 +103,10 @@ export class CarteraService {
     return this.http.post(`${this.apiUrl}/wallet/gifts/${giftId}/accept`, {});
   }
 
+  cancelGift(giftId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/wallet/gifts/${giftId}/cancel`, {});
+  }
+
   rejectGift(giftId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/wallet/gifts/${giftId}/reject`, {});
   }

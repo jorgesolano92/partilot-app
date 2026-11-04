@@ -34,6 +34,20 @@
           <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
         </button>
       </div>
+      <p class="field-hint" [class.field-error]="passwordTooShort">Mínimo {{ minPasswordLength }} caracteres</p>
+
+      <div class="input-wrap">
+        <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+        <ion-input
+          [type]="showPassword ? 'text' : 'password'"
+          [(ngModel)]="passwordConfirm"
+          name="passwordConfirm"
+          placeholder="Repite la contraseña"
+          class="input-field"
+          required>
+        </ion-input>
+      </div>
+      <p class="field-hint field-error" *ngIf="passwordMismatch">Las contraseñas no coinciden</p>
 
       <div class="input-wrap input-wrap-date" [class.has-value]="!!fechaNacimiento">
         <ion-icon name="calendar-outline" class="input-icon"></ion-icon>

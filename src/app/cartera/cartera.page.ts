@@ -328,6 +328,33 @@ export class CarteraPage implements OnInit, OnDestroy {
     });
   }
 
+  puedeCancelarRegalo(participacion: any): boolean {
+    return !!participacion?.gift_id
+      && participacion.gift_status === 'pending'
+      && !participacion.recibida_regalo
+      && !participacion.received_from_email;
+  }
+
+  async cancelarRegalo(participacion: any, event?: Event) {
+    event?.stopPropagation();
+    if (!participacion?.gift_id) return;
+    const ok = await this.confirmDialog(
+      'Cancelar regalo',
+      'El destinatario aún no lo ha aceptado. ¿Quieres anular el envío? La participación seguirá en tu cartera.'
+    );
+    if (!ok) return;
+    this.carteraService.cancelGift(participacion.gift_id).subscribe({
+      next: async (res) => {
+        this.carteraService.notifyParticipacionesChanged();
+        this.loadParticipaciones();
+        await this.alertModal.show('Regalo cancelado', res.message || 'La participación sigue en tu cartera.');
+      },
+      error: async (err) => {
+        await this.alertModal.show('Error', err?.error?.message || 'No se pudo cancelar el regalo.');
+      }
+    });
+  }
+
   puedeRegalar(participacion: any): boolean {
     if (!participacion || participacion.is_storage) return false;
     const e = participacion.estado || 'activa';

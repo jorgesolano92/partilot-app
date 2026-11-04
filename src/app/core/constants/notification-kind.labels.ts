@@ -9,9 +9,14 @@ export const NOTIFICATION_KIND_LABELS: Record<string, string> = {
   // API / jobs
   regalo_participacion: 'Regalo',
   regalo_rechazado: 'Regalo rechazado',
+  regalo_aceptado: 'Regalo aceptado',
   cobro_registrado: 'Cobro',
   invitacion_vendedor: 'Invitación vendedor',
+  vendedor_invitacion_aceptada: 'Invitación aceptada',
+  vendedor_invitacion_rechazada: 'Invitación rechazada',
+  vendedor_invitacion_confirmada: 'Eres vendedor',
   asignacion_participaciones: 'Asignación',
+  liquidacion_vendedor: 'Liquidación',
   resultados_sorteo: 'Resultados',
   // Legacy / mock UI (capturas)
   cobro: 'Cobro',
@@ -36,6 +41,7 @@ export function normalizeNotificationTipoForUi(kind: string): string {
     cobro_registrado: 'cobro',
     regalo_participacion: 'regalo',
     regalo_rechazado: 'regalo',
+    regalo_aceptado: 'regalo',
     resultados_sorteo: 'sorteo',
   };
   return map[kind] ?? kind;

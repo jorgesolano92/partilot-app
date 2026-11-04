@@ -27,6 +27,9 @@ export interface AppNotificacion {
   entidadNombre?: string;
   invitadorTexto?: string;
   entity_image?: string | null;
+  roleInvitationKey?: string | null;
+  assignmentState?: string | null;
+  actionable?: boolean;
 }
 
 @Component({
@@ -61,6 +64,12 @@ export class NotificacionesPage implements OnInit {
   ngOnInit(): void {
     this.detectarRol();
     this.route.queryParams.subscribe((params) => {
+      const invitationKey = typeof params['invitation'] === 'string' ? params['invitation'] : '';
+      if (invitationKey) {
+        void this.router.navigate(['/tabs/notificaciones'], { replaceUrl: true, queryParams: {} });
+        void this.abrirDesdeInvitacion(invitationKey);
+        return;
+      }
       const modalId = params['modalId'];
       if (modalId) {
         const id = Number(modalId);
@@ -139,7 +148,14 @@ export class NotificacionesPage implements OnInit {
   }
 
   esInvitacionVendedor(n: AppNotificacion | null): boolean {
-    return !!n && n.tipo === 'invitacion_vendedor';
+    return (
+      !!n &&
+      n.tipo === 'invitacion_vendedor' &&
+      (n.actionable === true ||
+        n.assignmentState === 'pending' ||
+        n.assignmentState === 'sent' ||
+        Boolean(n.roleInvitationKey))
+    );
   }
 
   puedeGestionarTipo(tipo: string): boolean {
@@ -151,8 +167,8 @@ export class NotificacionesPage implements OnInit {
     return {
       id: n.id,
       tipo: n.tipo,
-      titulo: n.titulo,
-      mensaje: n.mensaje,
+      titulo: n.titulo || notificationKindLabel(n.tipo),
+      mensaje: n.mensaje || '',
       fecha: n.fecha,
       leida: n.leida,
       detalle: n.detalle ?? undefined,
@@ -160,6 +176,9 @@ export class NotificacionesPage implements OnInit {
       entidadNombre: n.entidadNombre ?? undefined,
       invitadorTexto: n.invitadorTexto ?? undefined,
       entity_image: n.entity_image,
+      roleInvitationKey: n.roleInvitationKey ?? null,
+      assignmentState: n.assignmentState ?? null,
+      actionable: n.actionable === true,
     };
   }
 
@@ -250,6 +269,9 @@ export class NotificacionesPage implements OnInit {
       next: (res) => {
         if (res.success && res.notification) {
           const n = this.mapApi(res.notification);
+          if (!n.titulo && !n.mensaje) {
+            return;
+          }
           this.notificacionModal = n;
           this.modalAbierto = true;
           if (!n.leida) {
@@ -261,50 +283,80 @@ export class NotificacionesPage implements OnInit {
     });
   }
 
+  private abrirDesdeInvitacion(key: string): void {
+    const tryOpen = async () => {
+      const target =
+        this.notificaciones.find((n) => n.roleInvitationKey === key && this.esInvitacionVendedor(n)) ??
+        this.notificaciones.find((n) => n.roleInvitationKey === key);
+
+      if (target && this.esInvitacionVendedor(target)) {
+        this.notificacionModal = target;
+        this.modalAbierto = true;
+        this.marcarLeida(target);
+        return;
+      }
+
+      if (target) {
+        this.abrirDetalle(target);
+        return;
+      }
+
+      const toast = await this.toastController.create({
+        message: 'Invitación no disponible o ya procesada.',
+        duration: 2500,
+        position: 'bottom',
+      });
+      await toast.present();
+    };
+
+    if (this.notificaciones.length > 0) {
+      void tryOpen();
+      return;
+    }
+
+    this.inAppNotifications.list().subscribe({
+      next: (res) => {
+        if (res.success && Array.isArray(res.notifications)) {
+          this.notificaciones = res.notifications.map((n) => this.mapApi(n));
+          this.calcularNoLeidas();
+          this.aplicarFiltro();
+        }
+        void tryOpen();
+      },
+      error: () => {
+        void tryOpen();
+      },
+    });
+  }
+
   cerrarModal(): void {
     this.modalAbierto = false;
     this.notificacionModal = null;
   }
 
   async aceptarInvitacionVendedor(): Promise<void> {
-    if (!this.notificacionModal) {
+    const key = this.notificacionModal?.roleInvitationKey;
+    this.cerrarModal();
+    if (key) {
+      void this.router.navigate(['/aceptacion-rol'], { queryParams: { key } });
       return;
     }
-    this.cerrarModal();
-    const toast = await this.toastController.create({
-      message: 'Próximamente: aceptación en servidor.',
-      duration: 2800,
-      position: 'bottom',
-    });
-    await toast.present();
+    void this.router.navigate(['/aceptacion-rol']);
   }
 
   async rechazarInvitacionVendedor(): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Rechazar invitación',
-      message: '¿Seguro que quieres rechazar esta invitación?',
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Rechazar',
-          role: 'destructive',
-          handler: async () => {
-            this.cerrarModal();
-            const t = await this.toastController.create({
-              message: 'Invitación rechazada (pendiente de integración).',
-              duration: 2000,
-              position: 'bottom',
-            });
-            await t.present();
-          },
-        },
-      ],
-    });
-    await alert.present();
+    const key = this.notificacionModal?.roleInvitationKey;
+    this.cerrarModal();
+    if (key) {
+      void this.router.navigate(['/aceptacion-rol'], { queryParams: { key } });
+      return;
+    }
+    void this.router.navigate(['/aceptacion-rol']);
   }
 
   irCondicionesVendedor(): void {
-    void this.router.navigate(['/condiciones-legales']);
+    const key = this.notificacionModal?.roleInvitationKey;
+    void this.router.navigate(['/aceptacion-rol'], key ? { queryParams: { key } } : {});
   }
 
   accionGestionar(n: AppNotificacion): void {
