@@ -73,27 +73,27 @@
     </app-participation-list-filters>
 
     <!-- Botones de acción -->
-    <div class="actions-section" style="margin-bottom: 8px !important;">
+    <div class="actions-section">
       <ion-button 
         class="action-button digitalizar-button" 
         fill="outline"
         (click)="agregarParticipacion()">
         <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-        Digitalizar + <br> Participación
+        <span class="action-label">Digitalizar</span>
       </ion-button>
       <ion-button 
         class="action-button gestionar-button" 
         fill="outline"
         (click)="irACobrarGestionar()">
         <ion-icon name="cash-outline" slot="start"></ion-icon>
-        Cobrar / <br> Gestionar
+        <span class="action-label">Cobrar</span>
       </ion-button>
       <ion-button
         class="action-button codigo-button"
         fill="outline"
         (click)="abrirModalCodigoVinculacion()">
         <ion-icon name="key-outline" slot="start"></ion-icon>
-        Vincular <br> con código
+        <span class="action-label">Vincular con código</span>
       </ion-button>
     </div>
 
@@ -123,12 +123,12 @@
                 <span class="numero-reservado">{{ participacion.numeroReservado || participacion.numero || participacion.id }}</span>
                 <span class="status-badge digital-badge" *ngIf="participacion.is_digital">Digital</span>
               </div>
-              <span class="numero-participacion" *ngIf="participacion.numeroParticipacion">{{ participacion.numeroParticipacion }}</span>
             </div>
           </div>
           <div class="participacion-right">
             <div class="participacion-meta">
               <div class="participacion-top-right">
+                <span class="numero-participacion" *ngIf="participacion.numeroParticipacion">{{ participacion.numeroParticipacion }}</span>
                 <span class="sorteo" *ngIf="participacion.sorteo">Sorteo: {{ participacion.sorteo }}</span>
                 <span class="fecha">
                   <ion-icon name="calendar-outline"></ion-icon>
@@ -191,7 +191,25 @@
             </div>
             <div class="detalle-row" *ngIf="participacion.premio != null && participacion.premio > 0">
               <span class="detalle-label">Premio:</span>
-              <span class="detalle-value">€{{ participacion.premio | number:'1.2-2' }}</span>
+              <span class="detalle-value premio-con-info">
+                €{{ participacion.premio | number:'1.2-2' }}
+                <button
+                  type="button"
+                  class="premio-info-btn"
+                  *ngIf="tieneDesglosePremio(participacion)"
+                  (click)="mostrarDesglosePremio(participacion, $event)"
+                  aria-label="Ver desglose de premios por número">
+                  <ion-icon name="information-circle-outline"></ion-icon>
+                </button>
+              </span>
+            </div>
+            <div class="premio-desglose" *ngIf="desgloseVisibleId === participacion.id && tieneDesglosePremio(participacion)">
+              <div class="premio-desglose-row" *ngFor="let linea of participacion.premio_desglose">
+                <span class="premio-desglose-num">{{ linea.number }}</span>
+                <span class="premio-desglose-amount" [class.sin-premio]="!(linea.amount > 0)">
+                  €{{ (linea.amount ?? 0) | number:'1.2-2' }}
+                </span>
+              </div>
             </div>
             <div class="detalle-row" *ngIf="participacion.payment_blocked && participacion.user_message">
               <span class="detalle-label">Estado cobro:</span>
@@ -275,15 +293,31 @@
               *ngIf="participacion.snapshot_path"
               [src]="getImageUrl(participacion.snapshot_path)"
               [alt]="participacion.entidad || 'Participación'">
+            <div class="image-placeholder" *ngIf="!participacion.snapshot_path">
+              <ion-icon name="ticket-outline"></ion-icon>
+            </div>
           </div>
           <div class="participacion-info">
             <div class="participacion-header">
               <span class="entidad">{{ participacion.entidad || 'Entidad' }}</span>
-              <span class="status-badge storage-badge">Almacén</span>
+              <div class="numero-reservado-row">
+                <span class="numero-reservado">{{ participacion.numeroReservado || participacion.numero || participacion.id }}</span>
+                <span class="status-badge storage-badge">Almacén</span>
+              </div>
             </div>
           </div>
           <div class="participacion-right">
-            <span class="importe premio" *ngIf="participacion.premio != null && participacion.premio > 0">€{{ participacion.premio | number:'1.2-2' }}</span>
+            <div class="participacion-meta">
+              <div class="participacion-top-right">
+                <span class="numero-participacion" *ngIf="participacion.numeroParticipacion">{{ participacion.numeroParticipacion }}</span>
+                <span class="sorteo" *ngIf="participacion.sorteo">Sorteo: {{ participacion.sorteo }}</span>
+                <span class="fecha">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  {{ participacion.fechaSorteo || '—' }}
+                </span>
+              </div>
+              <span class="importe premio" *ngIf="participacion.premio != null && participacion.premio > 0">€{{ participacion.premio | number:'1.2-2' }}</span>
+            </div>
             <ion-icon [name]="estaExpandida(participacion) ? 'chevron-down-outline' : 'chevron-forward-outline'" class="chevron-icon"></ion-icon>
           </div>
         </div>
@@ -292,7 +326,25 @@
             <p class="storage-info-text">{{ participacion.storage_message }}</p>
             <div class="detalle-row" *ngIf="participacion.premio != null && participacion.premio > 0">
               <span class="detalle-label">Premio orientativo:</span>
-              <span class="detalle-value">€{{ participacion.premio | number:'1.2-2' }}</span>
+              <span class="detalle-value premio-con-info">
+                €{{ participacion.premio | number:'1.2-2' }}
+                <button
+                  type="button"
+                  class="premio-info-btn"
+                  *ngIf="tieneDesglosePremio(participacion)"
+                  (click)="mostrarDesglosePremio(participacion, $event)"
+                  aria-label="Ver desglose de premios por número">
+                  <ion-icon name="information-circle-outline"></ion-icon>
+                </button>
+              </span>
+            </div>
+            <div class="premio-desglose" *ngIf="desgloseVisibleId === participacion.id && tieneDesglosePremio(participacion)">
+              <div class="premio-desglose-row" *ngFor="let linea of participacion.premio_desglose">
+                <span class="premio-desglose-num">{{ linea.number }}</span>
+                <span class="premio-desglose-amount" [class.sin-premio]="!(linea.amount > 0)">
+                  €{{ (linea.amount ?? 0) | number:'1.2-2' }}
+                </span>
+              </div>
             </div>
             <div class="detalle-row" *ngIf="muestraCobroPresencial(participacion)">
               <span class="detalle-label">Cobro presencial:</span>
