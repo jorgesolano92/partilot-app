@@ -203,7 +203,17 @@ export class VentasService {
       expires_at?: string | null;
     }>;
   }> {
-    return this.http.get(`${this.apiUrl}/sellers/me/assignment-proposals/pending`);
+    return this.http.get<{
+      success: boolean;
+      count: number;
+      proposals: Array<{
+        id: number;
+        participation_count: number;
+        entity_name?: string | null;
+        lottery_name?: string | null;
+        expires_at?: string | null;
+      }>;
+    }>(`${this.apiUrl}/sellers/me/assignment-proposals/pending`);
   }
 
   acceptAssignmentProposal(proposalId: number): Observable<{
@@ -211,7 +221,11 @@ export class VentasService {
     title?: string;
     message?: string;
   }> {
-    return this.http.post(`${this.apiUrl}/sellers/me/assignment-proposals/${proposalId}/accept`, {});
+    return this.http.post<{
+      success: boolean;
+      title?: string;
+      message?: string;
+    }>(`${this.apiUrl}/sellers/me/assignment-proposals/${proposalId}/accept`, {});
   }
 
   rejectAssignmentProposal(proposalId: number): Observable<{
@@ -219,7 +233,11 @@ export class VentasService {
     title?: string;
     message?: string;
   }> {
-    return this.http.post(`${this.apiUrl}/sellers/me/assignment-proposals/${proposalId}/reject`, {});
+    return this.http.post<{
+      success: boolean;
+      title?: string;
+      message?: string;
+    }>(`${this.apiUrl}/sellers/me/assignment-proposals/${proposalId}/reject`, {});
   }
 
   /** Gestor: entidades que gestiona (tabla managers) */
