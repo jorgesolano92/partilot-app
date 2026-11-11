@@ -11,8 +11,7 @@
 // Logo ahora es una imagen, estilos en global.scss
 
 .cartera-container {
-  padding: 16px;
-  padding-bottom: 100px;
+  padding: 8px 14px 110px;
 }
 
 .rol-selector {
@@ -45,58 +44,63 @@
 }
 
 .header-section {
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 .page-title {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 24px;
+  gap: 8px;
+  font-size: 20px;
   font-weight: bold;
   color: #212529;
-  margin: 0 0 8px 0;
+  margin: 0 0 2px 0;
   
   .title-icon {
-    font-size: 28px;
+    font-size: 22px;
     color: #212529;
   }
 }
 
 .page-subtitle {
   color: #6c757d;
-  font-size: 14px;
+  font-size: 12px;
   margin: 0;
 }
 
 .actions-section {
-  flex-wrap: wrap;
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .action-button {
-  flex: 1;
-  height: 49px;
-  border-radius: 24px;
-  font-weight: 500;
+  margin: 0;
+  height: 40px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
   text-transform: none;
-  --background: #F5F6F7;
+  --background: #ffffff;
   --color: #212529;
   --border-color: #E9ECEF;
   --border-width: 1px;
   --border-style: solid;
-  
-  &.digitalizar-button,
-  &.gestionar-button {
-    --background: white;
-    --border-color: #E9ECEF;
-    
-    ion-icon {
-      font-size: 20px;
-      margin-right: 8px;
-    }
+  --padding-start: 10px;
+  --padding-end: 10px;
+
+  ion-icon {
+    font-size: 18px;
+    margin-inline-end: 6px;
+  }
+
+  .action-label {
+    white-space: nowrap;
+  }
+
+  &.codigo-button {
+    grid-column: 1 / -1;
   }
 }
 
@@ -109,6 +113,13 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.section-heading {
+  margin: 4px 0 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #495057;
 }
 
 .participacion-card {
@@ -198,26 +209,32 @@
     font-size: 14px;
     font-weight: bold;
     color: #212529;
-  }
-  
-  .numero-participacion {
-    font-size: 12px;
-    color: #495057;
+    line-height: 1.35;
+    word-break: break-word;
   }
 
-  .digital-badge {
+  .digital-badge,
+  .storage-badge {
     padding: 2px 8px;
     border-radius: 10px;
     font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+  }
+
+  .digital-badge {
     background-color: #E3F2FD;
     color: #1565C0;
   }
+
+  .storage-badge {
+    background-color: #E9ECEF;
+    color: #495057;
+  }
 }
 
-// Columna derecha: arriba fecha + badge, debajo precio, chevron al final
+// Columna derecha: nº participación + sorteo + fecha, premio, badges, chevron
 .participacion-right {
   display: flex;
   align-items: center;
@@ -237,11 +254,7 @@
     font-size: 11px;
     font-weight: 500;
 
-    &.pagada {
-      background-color: #D4EDDA;
-      color: #155724;
-    }
-
+    &.pagada,
     &.donada {
       background-color: #D4EDDA;
       color: #155724;
@@ -257,11 +270,7 @@
       color: #004085;
     }
 
-    &.pendiente-regalo {
-      background-color: #FFF3CD;
-      color: #856404;
-    }
-
+    &.pendiente-regalo,
     &.premio-bloqueado {
       background-color: #FFF3CD;
       color: #856404;
@@ -286,6 +295,12 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+
+  .numero-participacion {
+    font-size: 12px;
+    font-weight: 600;
+    color: #212529;
+  }
   
   .sorteo {
     font-size: 12px;
@@ -331,6 +346,17 @@
   color: #6c757d;
 }
 
+.section-subheading {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6c757d;
+}
+
+.almacen-heading {
+  margin-top: 16px;
+}
+
 .participacion-detalle {
   border-top: 1px solid #E9ECEF;
   padding: 12px 12px 16px;
@@ -367,6 +393,61 @@
       font-size: 13px;
       line-height: 1.35;
     }
+
+    &.premio-con-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
+}
+
+.premio-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #0d6efd;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+.premio-desglose {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f1f3f5;
+  border: 1px solid #e9ecef;
+}
+
+.premio-desglose-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.premio-desglose-num {
+  font-weight: 600;
+  color: #212529;
+  font-variant-numeric: tabular-nums;
+}
+
+.premio-desglose-amount {
+  font-weight: 500;
+  color: #198754;
+  font-variant-numeric: tabular-nums;
+
+  &.sin-premio {
+    color: #868e96;
   }
 }
 

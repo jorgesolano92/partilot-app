@@ -409,4 +409,42 @@ export class NotificacionesPage implements OnInit {
   noLeidasEnVista(): number {
     return this.notificacionesFiltradas.filter((n) => !n.leida).length;
   }
+
+  /** Badge de la campana en esta pantalla: no leídas del rol actual (el contador global engañaba). */
+  badgeVisible(): number {
+    const enVista = this.noLeidasEnVista();
+    if (enVista > 0) {
+      return enVista;
+    }
+    // Si esta vista está vacía pero hay no leídas en otros roles, sigue avisando.
+    return this.noLeidasEnOtrosRoles();
+  }
+
+  noLeidasEnOtrosRoles(): number {
+    return this.notificaciones.filter((n) => !n.leida && n.rolContext !== this.rolActual).length;
+  }
+
+  notificacionesEnOtrosRoles(): number {
+    return this.notificaciones.filter((n) => n.rolContext !== this.rolActual).length;
+  }
+
+  rolesConNoLeidas(): RolNotificacion[] {
+    const set = new Set<RolNotificacion>();
+    for (const n of this.notificaciones) {
+      if (!n.leida && n.rolContext !== this.rolActual) {
+        set.add(n.rolContext);
+      }
+    }
+    return Array.from(set);
+  }
+
+  rolesConNotificaciones(): RolNotificacion[] {
+    const set = new Set<RolNotificacion>();
+    for (const n of this.notificaciones) {
+      if (n.rolContext !== this.rolActual) {
+        set.add(n.rolContext);
+      }
+    }
+    return Array.from(set);
+  }
 }

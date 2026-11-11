@@ -25,6 +25,7 @@ export class CarteraPage implements OnInit, OnDestroy {
   participaciones: any[] = [];
   rolActual: 'usuario' | 'vendedor' | 'gestor' = 'usuario';
   participacionExpandidaId: number | null = null;
+  desgloseVisibleId: number | null = null;
   loading = false;
   participacionParaRegalar: any = null;
   emailDestinatario = '';
@@ -235,11 +236,29 @@ export class CarteraPage implements OnInit, OnDestroy {
 
   toggleDetalle(participacion: any) {
     const id = participacion.id;
-    this.participacionExpandidaId = this.participacionExpandidaId === id ? null : id;
+    if (this.participacionExpandidaId === id) {
+      this.participacionExpandidaId = null;
+      this.desgloseVisibleId = null;
+    } else {
+      this.participacionExpandidaId = id;
+      this.desgloseVisibleId = null;
+    }
   }
 
   estaExpandida(participacion: any): boolean {
     return this.participacionExpandidaId === participacion.id;
+  }
+
+  tieneDesglosePremio(participacion: any): boolean {
+    return Array.isArray(participacion?.premio_desglose) && participacion.premio_desglose.length > 0;
+  }
+
+  mostrarDesglosePremio(participacion: any, event: Event): void {
+    event.stopPropagation();
+    if (!this.tieneDesglosePremio(participacion)) {
+      return;
+    }
+    this.desgloseVisibleId = this.desgloseVisibleId === participacion.id ? null : participacion.id;
   }
 
   getEstadoTexto(estado: string): string {

@@ -233,6 +233,27 @@
   color: #212529;
 }
 
+.empty-hint {
+  margin: 12px auto 0;
+  max-width: 280px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #6c757d;
+}
+
+.link-rol {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #f49200;
+  font-weight: 700;
+  font-size: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* Modal centrado (sin breakpoints: evita sheet pegado abajo con altura ~0) */
 ion-modal.modal-notif-partilot {
   --width: min(92vw, 400px);

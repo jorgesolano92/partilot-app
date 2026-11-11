@@ -10,7 +10,7 @@
     <ion-buttons slot="end">
       <ion-button fill="clear" routerLink="/tabs/notificaciones" class="bell-btn">
         <ion-icon name="notifications-outline"></ion-icon>
-        <ion-badge *ngIf="notificacionesNoLeidas > 0" color="danger" class="bell-badge">{{ notificacionesNoLeidas > 99 ? '99+' : notificacionesNoLeidas }}</ion-badge>
+        <ion-badge *ngIf="badgeVisible() > 0" color="danger" class="bell-badge">{{ badgeVisible() > 99 ? '99+' : badgeVisible() }}</ion-badge>
       </ion-button>
     </ion-buttons>
     <ion-menu-button menu="main-menu" slot="end"></ion-menu-button>
@@ -111,8 +111,23 @@
           </div>
         </button>
 
-        <div class="empty-state" *ngIf="notificacionesFiltradas.length === 0">
-          <p class="empty-title">No hay Notificaciones</p>
+        <div class="empty-state" *ngIf="!cargandoLista && notificacionesFiltradas.length === 0">
+          <p class="empty-title">No hay notificaciones en {{ etiquetaRol(rolActual) }}</p>
+          <p class="empty-hint" *ngIf="noLeidasEnOtrosRoles() > 0">
+            Tienes {{ noLeidasEnOtrosRoles() }} sin leer en otro rol.
+            Cambia arriba a
+            <ng-container *ngFor="let r of rolesConNoLeidas(); let last = last">
+              <button type="button" class="link-rol" (click)="cambiarRol(r)">{{ etiquetaRol(r) }}</button><span *ngIf="!last"> o </span>
+            </ng-container>
+            para verlas.
+          </p>
+          <p class="empty-hint" *ngIf="noLeidasEnOtrosRoles() === 0 && notificacionesEnOtrosRoles() > 0">
+            Hay avisos en
+            <ng-container *ngFor="let r of rolesConNotificaciones(); let last = last">
+              <button type="button" class="link-rol" (click)="cambiarRol(r)">{{ etiquetaRol(r) }}</button><span *ngIf="!last"> / </span>
+            </ng-container>
+            (ya leídos o de otro contexto).
+          </p>
         </div>
       </div>
     </div>
