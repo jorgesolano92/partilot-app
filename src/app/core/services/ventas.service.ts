@@ -192,6 +192,36 @@ export class VentasService {
     return this.http.get(`${this.apiUrl}/sellers/me/tacos/${setId}/${bookNumber}/participations`);
   }
 
+  getPendingAssignmentProposals(): Observable<{
+    success: boolean;
+    count: number;
+    proposals: Array<{
+      id: number;
+      participation_count: number;
+      entity_name?: string | null;
+      lottery_name?: string | null;
+      expires_at?: string | null;
+    }>;
+  }> {
+    return this.http.get(`${this.apiUrl}/sellers/me/assignment-proposals/pending`);
+  }
+
+  acceptAssignmentProposal(proposalId: number): Observable<{
+    success: boolean;
+    title?: string;
+    message?: string;
+  }> {
+    return this.http.post(`${this.apiUrl}/sellers/me/assignment-proposals/${proposalId}/accept`, {});
+  }
+
+  rejectAssignmentProposal(proposalId: number): Observable<{
+    success: boolean;
+    title?: string;
+    message?: string;
+  }> {
+    return this.http.post(`${this.apiUrl}/sellers/me/assignment-proposals/${proposalId}/reject`, {});
+  }
+
   /** Gestor: entidades que gestiona (tabla managers) */
   getManagerEntities(): Observable<any> {
     return this.http.get(`${this.apiUrl}/managers/me/entities`);

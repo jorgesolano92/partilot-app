@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular';
 import { finalize } from 'rxjs';
 import {
   ApiNotificationRow,
   InAppNotificationsService,
 } from '../core/services/in-app-notifications.service';
+import { VentasService } from '../core/services/ventas.service';
 import {
   normalizeNotificationTipoForUi,
   notificationKindLabel,
@@ -33,15 +35,20 @@ export class NotificacionDetallePage implements OnInit {
     roleInvitationKey?: string | null;
     assignmentState?: string | null;
     actionable?: boolean;
+    proposalId?: number | null;
   } | null = null;
 
   loading = true;
   errorMsg = '';
+  accionando = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private inAppNotifications: InAppNotificationsService
+    private inAppNotifications: InAppNotificationsService,
+    private ventasService: VentasService,
+    private alertController: AlertController,
+    private toastController: ToastController
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +77,7 @@ export class NotificacionDetallePage implements OnInit {
       roleInvitationKey: n.roleInvitationKey ?? null,
       assignmentState: n.assignmentState ?? null,
       actionable: n.actionable === true,
+      proposalId: n.proposalId ?? null,
     };
   }
 
@@ -109,9 +117,23 @@ export class NotificacionDetallePage implements OnInit {
     );
   }
 
+  esAsignacionPendiente(): boolean {
+    const n = this.notificacion;
+    return (
+      !!n &&
+      normalizeNotificationTipoForUi(n.tipo) === 'asignacion_participaciones' &&
+      n.assignmentState === 'pending' &&
+      !!n.proposalId &&
+      n.actionable !== false
+    );
+  }
+
   mostrarAcciones(): boolean {
     if (!this.notificacion) {
       return false;
+    }
+    if (this.esAsignacionPendiente()) {
+      return true;
     }
     const u = normalizeNotificationTipoForUi(this.notificacion.tipo);
     return ['cobro', 'ganador', 'regalo', 'sorteo', 'asignacion_participaciones'].includes(u);
@@ -145,6 +167,88 @@ export class NotificacionDetallePage implements OnInit {
   irCondicionesVendedor(): void {
     const key = this.notificacion?.roleInvitationKey;
     void this.router.navigate(['/aceptacion-rol'], key ? { queryParams: { key } } : {});
+  }
+
+  async aceptarAsignacion(): Promise<void> {
+    const proposalId = this.notificacion?.proposalId;
+    if (!proposalId || this.accionando) {
+      return;
+    }
+    const alert = await this.alertController.create({
+      header: 'Aceptar asignación',
+      message: '¿Confirmas que has recibido estas participaciones físicas?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Aceptar',
+          handler: () => {
+            this.ejecutarRespuestaPropuesta(proposalId, 'accept');
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async rechazarAsignacion(): Promise<void> {
+    const proposalId = this.notificacion?.proposalId;
+    if (!proposalId || this.accionando) {
+      return;
+    }
+    const alert = await this.alertController.create({
+      header: 'Rechazar asignación',
+      message: 'Las participaciones volverán a estar disponibles para la entidad.',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Rechazar',
+          role: 'destructive',
+          handler: () => {
+            this.ejecutarRespuestaPropuesta(proposalId, 'reject');
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private ejecutarRespuestaPropuesta(proposalId: number, action: 'accept' | 'reject'): void {
+    this.accionando = true;
+    const req =
+      action === 'accept'
+        ? this.ventasService.acceptAssignmentProposal(proposalId)
+        : this.ventasService.rejectAssignmentProposal(proposalId);
+
+    req.pipe(finalize(() => (this.accionando = false))).subscribe({
+      next: async (res) => {
+        const toast = await this.toastController.create({
+          message: res.message || (res.success ? 'Hecho.' : 'No se pudo completar.'),
+          duration: 2800,
+          color: res.success ? 'success' : 'danger',
+          position: 'top',
+        });
+        await toast.present();
+        if (res.success && this.notificacion) {
+          this.notificacion = {
+            ...this.notificacion,
+            actionable: false,
+            assignmentState: action === 'accept' ? 'accepted' : 'rejected',
+          };
+          if (action === 'accept') {
+            void this.router.navigate(['/tabs/vendedor-tab4']);
+          }
+        }
+      },
+      error: async (err) => {
+        const toast = await this.toastController.create({
+          message: err?.error?.message || 'No se pudo completar la acción.',
+          duration: 2800,
+          color: 'danger',
+          position: 'top',
+        });
+        await toast.present();
+      },
+    });
   }
 
   /** Kind API normalizado para iconos y botones (cobro_registrado → cobro). */
