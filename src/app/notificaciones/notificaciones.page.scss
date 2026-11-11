@@ -53,9 +53,40 @@
 }
 
 .resumen-card.figma-card,
-.lista-panel.figma-card {
+.lista-panel.figma-card,
+.aviso-asignacion.figma-card {
   margin-left: 0;
   margin-right: 0;
+}
+
+.aviso-asignacion {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #fff8ef;
+  border: 1px solid #f0d2a0;
+  cursor: pointer;
+
+  ion-icon {
+    color: #f49200;
+    font-size: 28px;
+    margin-top: 2px;
+  }
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: #212529;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: #6c757d;
+    line-height: 1.35;
+  }
 }
 
 .resumen-card {

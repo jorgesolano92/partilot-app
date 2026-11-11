@@ -92,7 +92,21 @@
           <ion-icon name="calendar" slot="start"></ion-icon>
           Participar
         </ion-button>
-        <ion-button *ngIf="tipoUi === 'asignacion_participaciones'" class="figma-button-accent" expand="block" (click)="irParticipacionesVendedor()">
+        <ng-container *ngIf="tipoUi === 'asignacion_participaciones' && esAsignacionPendiente()">
+          <ion-button class="figma-button-accent" expand="block" [disabled]="accionando" (click)="aceptarAsignacion()">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Aceptar participaciones
+          </ion-button>
+          <ion-button class="figma-button" expand="block" fill="outline" color="medium" [disabled]="accionando" (click)="rechazarAsignacion()">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Rechazar
+          </ion-button>
+        </ng-container>
+        <ion-button
+          *ngIf="tipoUi === 'asignacion_participaciones' && !esAsignacionPendiente()"
+          class="figma-button-accent"
+          expand="block"
+          (click)="irParticipacionesVendedor()">
           <ion-icon name="ticket-outline" slot="start"></ion-icon>
           Ver participaciones
         </ion-button>

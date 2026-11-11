@@ -57,6 +57,21 @@
 
     <p class="error-msg" *ngIf="errorCarga && !cargandoLista">{{ errorCarga }}</p>
 
+    <div
+      class="aviso-asignacion figma-card"
+      *ngIf="rolActual === 'vendedor' && pendientesAsignacionEnVista().length > 0 && !cargandoLista"
+      (click)="irPrimeraAsignacionPendiente()">
+      <ion-icon name="ticket-outline"></ion-icon>
+      <div>
+        <h2>Participaciones por aceptar</h2>
+        <p>
+          Tienes {{ pendientesAsignacionEnVista().length }}
+          {{ pendientesAsignacionEnVista().length === 1 ? 'asignación pendiente' : 'asignaciones pendientes' }}.
+          Toca para aceptar o rechazar desde la app.
+        </p>
+      </div>
+    </div>
+
     <div class="resumen-card figma-card" *ngIf="noLeidasEnVista() > 0 && !cargandoLista">
       <div class="resumen-header">
         <ion-icon name="notifications" size="large"></ion-icon>
@@ -170,7 +185,9 @@
           <p class="modal-texto">{{ n.mensaje }}</p>
           <p class="modal-texto secundario" *ngIf="n.detalle">{{ n.detalle }}</p>
           <ion-button expand="block" class="btn-aceptar-naranja" (click)="cerrarModal()">Cerrar</ion-button>
-          <ion-button *ngIf="puedeGestionarTipo(n.tipo)" expand="block" fill="outline" class="btn-rechazar" (click)="accionGestionar(n)">Gestionar</ion-button>
+          <ion-button *ngIf="puedeGestionarTipo(n.tipo)" expand="block" fill="outline" class="btn-rechazar" (click)="accionGestionar(n)">
+            {{ esAsignacionPendiente(n) ? 'Aceptar / Rechazar' : 'Gestionar' }}
+          </ion-button>
         </ng-template>
       </ng-container>
     </ion-content>

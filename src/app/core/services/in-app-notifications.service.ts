@@ -18,6 +18,7 @@ export interface ApiNotificationRow {
   roleInvitationKey?: string | null;
   assignmentState?: string | null;
   actionable?: boolean;
+  proposalId?: number | null;
   deepLink?: string | null;
 }
 

@@ -30,6 +30,7 @@ export interface AppNotificacion {
   roleInvitationKey?: string | null;
   assignmentState?: string | null;
   actionable?: boolean;
+  proposalId?: number | null;
 }
 
 @Component({
@@ -179,7 +180,28 @@ export class NotificacionesPage implements OnInit {
       roleInvitationKey: n.roleInvitationKey ?? null,
       assignmentState: n.assignmentState ?? null,
       actionable: n.actionable === true,
+      proposalId: n.proposalId ?? null,
     };
+  }
+
+  esAsignacionPendiente(n: AppNotificacion | null): boolean {
+    return (
+      !!n &&
+      normalizeNotificationTipoForUi(n.tipo) === 'asignacion_participaciones' &&
+      n.assignmentState === 'pending' &&
+      !!n.proposalId
+    );
+  }
+
+  pendientesAsignacionEnVista(): AppNotificacion[] {
+    return this.notificacionesFiltradas.filter((n) => this.esAsignacionPendiente(n));
+  }
+
+  irPrimeraAsignacionPendiente(): void {
+    const first = this.pendientesAsignacionEnVista()[0];
+    if (first) {
+      this.abrirDetalle(first);
+    }
   }
 
   cargarNotificaciones(): void {
@@ -377,7 +399,11 @@ export class NotificacionesPage implements OnInit {
         void this.router.navigate(['/tabs/tab1']);
         break;
       case 'asignacion_participaciones':
-        void this.router.navigate(['/tabs/vendedor-tab4']);
+        if (this.esAsignacionPendiente(n)) {
+          void this.router.navigate(['/notificacion-detalle'], { queryParams: { id: n.id } });
+        } else {
+          void this.router.navigate(['/tabs/vendedor-tab4']);
+        }
         break;
       default:
         break;
