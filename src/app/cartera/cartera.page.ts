@@ -376,6 +376,7 @@ export class CarteraPage implements OnInit, OnDestroy {
 
   puedeRegalar(participacion: any): boolean {
     if (!participacion || participacion.is_storage) return false;
+    if (participacion.can_gift === false) return false;
     const e = participacion.estado || 'activa';
     if (e === 'cobrada' || e === 'donada' || e === 'caducada' || e === 'regalada' || e === 'pendiente_regalo') return false;
     if (participacion.received_from_email || participacion.gift_status === 'accepted') return false;
