@@ -59,14 +59,14 @@
 
     <div
       class="aviso-asignacion figma-card"
-      *ngIf="rolActual === 'vendedor' && pendientesAsignacionEnVista().length > 0 && !cargandoLista"
+      *ngIf="pendientesAsignacion().length > 0 && !cargandoLista"
       (click)="irPrimeraAsignacionPendiente()">
       <ion-icon name="ticket-outline"></ion-icon>
       <div>
         <h2>Participaciones por aceptar</h2>
         <p>
-          Tienes {{ pendientesAsignacionEnVista().length }}
-          {{ pendientesAsignacionEnVista().length === 1 ? 'asignación pendiente' : 'asignaciones pendientes' }}.
+          Tienes {{ pendientesAsignacion().length }}
+          {{ pendientesAsignacion().length === 1 ? 'asignación pendiente' : 'asignaciones pendientes' }}.
           Toca para aceptar o rechazar desde la app.
         </p>
       </div>

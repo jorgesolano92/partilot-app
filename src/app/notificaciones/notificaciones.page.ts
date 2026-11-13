@@ -193,15 +193,38 @@ export class NotificacionesPage implements OnInit {
     );
   }
 
-  pendientesAsignacionEnVista(): AppNotificacion[] {
-    return this.notificacionesFiltradas.filter((n) => this.esAsignacionPendiente(n));
+  /** Pendientes de recibo físico, en cualquier rol (no solo el filtro actual). */
+  pendientesAsignacion(): AppNotificacion[] {
+    return this.notificaciones.filter((n) => this.esAsignacionPendiente(n));
   }
 
   irPrimeraAsignacionPendiente(): void {
-    const first = this.pendientesAsignacionEnVista()[0];
-    if (first) {
-      this.abrirDetalle(first);
+    const first = this.pendientesAsignacion()[0];
+    if (!first) {
+      return;
     }
+    if (this.rolActual !== 'vendedor' && this.authService.canSeller()) {
+      this.activarRolVendedorSilencioso();
+    }
+    this.abrirDetalle(first);
+  }
+
+  /** Si hay recibos pendientes, fuerza vista Vendedor para que no queden ocultas en Usuario. */
+  private asegurarVistaParaAsignacionesPendientes(): void {
+    if (this.pendientesAsignacion().length === 0) {
+      return;
+    }
+    if (this.rolActual === 'vendedor' || !this.authService.canSeller()) {
+      return;
+    }
+    this.activarRolVendedorSilencioso();
+  }
+
+  private activarRolVendedorSilencioso(): void {
+    this.rolActual = 'vendedor';
+    localStorage.setItem('rolActual', 'vendedor');
+    localStorage.setItem('esVendedor', 'true');
+    this.aplicarFiltro();
   }
 
   cargarNotificaciones(): void {
@@ -216,6 +239,7 @@ export class NotificacionesPage implements OnInit {
             this.notificaciones = res.notifications.map((n) => this.mapApi(n));
             this.calcularNoLeidas();
             this.aplicarFiltro();
+            this.asegurarVistaParaAsignacionesPendientes();
             this.syncBadgeMenuFromUnread();
           } else {
             this.notificaciones = [];
