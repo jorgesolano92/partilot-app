@@ -37,7 +37,7 @@
       </ion-button>
       <ion-button *ngIf="authService.canSeller()" class="rol-button" [class.active]="rolActual === 'vendedor'" fill="clear"
         (click)="cambiarRol('vendedor')" [disabled]="rolActual === 'vendedor'">
-        <ion-icon name="bag-outline" slot="start"></ion-icon> Vendedor
+        <ion-icon name="bag-outline" slot="start"></ion-icon> Colaborador
       </ion-button>
       <ion-button *ngIf="authService.canManager()" class="rol-button" [class.active]="rolActual === 'gestor'" fill="clear"
         (click)="cambiarRol('gestor')" [disabled]="rolActual === 'gestor'">

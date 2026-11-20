@@ -18,6 +18,11 @@
 
 <ion-content [fullscreen]="true" class="venta-manual-content">
   <div class="venta-manual-container">
+
+    <app-age-responsible-badge></app-age-responsible-badge>
+    <p class="seller-delivery-disclaimer">
+      Registro de entregas realizadas fuera de la app. No se procesan pagos en esta aplicación.
+    </p>
     
     <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->
     <div class="rol-selector" *ngIf="authService.showRoleSelector()">
@@ -35,7 +40,7 @@
         fill="clear"
         [disabled]="true">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -49,15 +54,15 @@
 
     <div class="loading-section" *ngIf="loading">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>Registrando venta...</p>
+      <p>Registrando entrega...</p>
     </div>
 
     <!-- Card Vender -->
     <div class="vender-card figma-card">
       <div class="vender-header">
         <div class="vender-title-section">
-          <h2 class="vender-title">Vender</h2>
-          <p class="vender-subtitle">Gestiona la venta de participaciones</p>
+          <h2 class="vender-title">Entregar</h2>
+          <p class="vender-subtitle">Gestiona la entrega de participaciones</p>
         </div>
         <div class="vender-logo">
           <div class="logo-palacios">
@@ -84,7 +89,7 @@
       <!-- Sección Escáner (solo para físicas) -->
       <div class="escaner-section" *ngIf="tipoParticipacion === 'fisicas'">
         <h3 class="section-title">Escaner</h3>
-        <p class="section-subtitle">Lee el código QR y registra la venta</p>
+        <p class="section-subtitle">Lee el código QR y registra la entrega</p>
         <ion-button class="escanear-qr-button" expand="block" (click)="escanearQR()">
           Escanear QR
         </ion-button>
@@ -93,7 +98,7 @@
       <!-- Sección Manual -->
       <div class="manual-section">
         <h3 class="section-title">Manual</h3>
-        <p class="section-subtitle">Registra la Venta</p>
+        <p class="section-subtitle">Registra la entrega</p>
       </div>
 
       <!-- Participaciones Físicas -->
@@ -192,7 +197,7 @@
         expand="block"
         [disabled]="!puedeVender()"
         (click)="mostrarResumen()">
-        Vender
+        Entregar
       </ion-button>
     </div>
 
@@ -274,9 +279,9 @@
 <!-- Modal de Éxito -->
 <div class="modal-overlay" *ngIf="mostrarModalExito" (click)="cerrarModalExito()">
   <div class="modal-container exito-modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title-exito">Venta registrada con éxito</h2>
+    <h2 class="modal-title-exito">Entrega registrada con éxito</h2>
     <div class="modal-content-exito">
-      <p>Puedes consultar el detalle en el historial de ventas o continuar con una nueva venta.</p>
+      <p>Puedes consultar el detalle en el historial de entregas o continuar con una nueva entrega.</p>
     </div>
     <ion-button 
       class="aceptar-button" 

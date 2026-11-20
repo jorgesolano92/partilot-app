@@ -18,8 +18,13 @@
 
 <ion-content [fullscreen]="true" class="venta-qr-content">
 
-  <!-- Vista Principal de Venta QR -->
+  <!-- Vista Principal de Entrega QR -->
   <div class="venta-qr-container">
+
+    <app-age-responsible-badge></app-age-responsible-badge>
+    <p class="seller-delivery-disclaimer">
+      Registro de entregas realizadas fuera de la app. No se procesan pagos en esta aplicación.
+    </p>
     
     <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->
     <div class="rol-selector" *ngIf="authService.showRoleSelector()">
@@ -37,7 +42,7 @@
         fill="clear"
         [disabled]="true">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -54,12 +59,12 @@
       <p>Procesando...</p>
     </div>
 
-    <!-- Card Venta QR -->
+    <!-- Card Entrega QR -->
     <div class="venta-qr-card figma-card">
       <div class="card-header">
         <div class="header-text">
-          <h2 class="card-title">Venta QR</h2>
-          <p class="card-subtitle">Gestiona la venta de participaciones</p>
+          <h2 class="card-title">Entrega QR</h2>
+          <p class="card-subtitle">Gestiona la entrega de participaciones</p>
         </div>
         <ion-button fill="clear" class="close-button" (click)="cerrarVenta()">
           <ion-icon name="close"></ion-icon>
@@ -219,9 +224,9 @@
 <!-- Modal de Éxito -->
 <div class="modal-overlay" *ngIf="mostrarModalExito" (click)="cerrarModalExito()">
   <div class="modal-container exito-modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title-exito">Venta registrada con éxito</h2>
+    <h2 class="modal-title-exito">Entrega registrada con éxito</h2>
     <div class="modal-content-exito">
-      <p>Puedes consultar el detalle en el historial de ventas o continuar con una nueva venta.</p>
+      <p>Puedes consultar el detalle en el historial de entregas o continuar con una nueva entrega.</p>
     </div>
     <ion-button 
       class="aceptar-button" 

@@ -32,7 +32,7 @@
         fill="clear"
         (click)="cambiarRol('vendedor')">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -69,10 +69,10 @@
 
       <div class="accion-card vendedores-card" (click)="irAVendedores()">
         <div class="card-content">
-          <h3 class="card-title">Vendedores</h3>
-          <p class="card-description">Gestiona y administra tus vendedores</p>
+          <h3 class="card-title">Colaboradores</h3>
+          <p class="card-description">Gestiona y administra tus colaboradores</p>
           <div class="card-illustration">
-            <img src="/assets/images/vendedores.png" alt="Vendedores" class="card-image">
+            <img src="/assets/images/vendedores.png" alt="Colaboradores" class="card-image">
           </div>
         </div>
       </div>
@@ -80,7 +80,7 @@
       <div class="accion-card devolucion-card" (click)="irADevolucion()">
         <div class="card-content">
           <h3 class="card-title">Devolución</h3>
-          <p class="card-description">Gestiona las devoluciones de tus vendedores</p>
+          <p class="card-description">Gestiona las devoluciones de tus colaboradores</p>
           <div class="card-illustration">
             <div class="stack-illustration">
               <img src="/assets/images/participaciones.png" alt="Participaciones" class="card-image stack-base">

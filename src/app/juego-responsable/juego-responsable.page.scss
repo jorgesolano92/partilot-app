@@ -1,0 +1,131 @@
+.header-content {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.logo-image {
+  height: 28px;
+  width: auto;
+}
+
+.jr-content {
+  --background: #f7f5f2;
+}
+
+.jr-container {
+  padding: 20px 18px 40px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.jr-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+}
+
+.age-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lead {
+  color: #444;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.jr-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  p, li {
+    color: #444;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  li + li {
+    margin-top: 6px;
+  }
+}
+
+.phone {
+  font-size: 1.05rem !important;
+
+  a {
+    color: #c45c26;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+.jr-link-btn {
+  margin-top: 12px;
+  --background: #111;
+  --border-radius: 28px;
+  font-weight: 600;
+  text-transform: none;
+
+  &.outline {
+    --background: transparent;
+    --color: #111;
+    --border-color: #111;
+    --border-width: 1px;
+    --border-style: solid;
+  }
+}
+
+.jr-card ol {
+  margin: 0;
+  padding-left: 1.2rem;
+
+  li {
+    color: #444;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+
+  li + li {
+    margin-top: 8px;
+  }
+}
+
+.lead a {
+  color: #c45c26;
+  font-weight: 600;
+}

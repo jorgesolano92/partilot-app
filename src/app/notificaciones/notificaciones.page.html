@@ -37,7 +37,7 @@
         fill="clear"
         (click)="cambiarRol('vendedor')">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button
         *ngIf="authService.canViewGestor()"
@@ -175,7 +175,7 @@
           </p>
           <p class="modal-legal">
             Al continuar, <button type="button" class="link-naranja" (click)="irCondicionesVendedor()">aceptas las condiciones de uso</button>
-            de la sección de vendedores de la plataforma.
+            de la sección de colaboradores de la plataforma.
           </p>
           <ion-button expand="block" class="btn-aceptar-naranja" (click)="aceptarInvitacionVendedor()">Aceptar</ion-button>
           <ion-button expand="block" fill="outline" class="btn-rechazar" (click)="rechazarInvitacionVendedor()">Rechazar Invitación</ion-button>

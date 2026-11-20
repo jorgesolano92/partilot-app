@@ -7,6 +7,9 @@ export const environment = {
   apiUrl: 'http://127.0.0.1:8000/api',
   // apiUrl: 'https://panel.partilot.es/api',
 
+  /** Web de usuario (Lotería Social → «Juega aquí» abre el navegador externo). */
+  loteriaSocialWebUrl: 'https://partilot.es',
+
   /**
    * Ruta relativa a `apiUrl` para registrar el token FCM (POST JSON `{ fcm_token }`).
    * Laravel: `NotificationController::registerToken` bajo middleware `auth.api`.

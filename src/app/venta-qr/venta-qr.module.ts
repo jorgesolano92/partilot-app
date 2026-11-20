@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { VentaQrPageRoutingModule } from './venta-qr-routing.module';
+import { AgeResponsibleBadgeModule } from '../shared/age-responsible-badge/age-responsible-badge.module';
 
 import { VentaQRPage } from './venta-qr.page';
 
@@ -13,7 +14,8 @@ import { VentaQRPage } from './venta-qr.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    VentaQrPageRoutingModule
+    VentaQrPageRoutingModule,
+    AgeResponsibleBadgeModule,
   ],
   declarations: [VentaQRPage]
 })

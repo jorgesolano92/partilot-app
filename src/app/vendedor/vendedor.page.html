@@ -32,7 +32,7 @@
         fill="clear"
         [disabled]="true">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -43,6 +43,8 @@
         Gestor
       </ion-button>
     </div>
+
+    <app-age-responsible-badge></app-age-responsible-badge>
 
     <!-- Card de Tutorial -->
     <div class="tutorial-card figma-card-" (click)="verTutoriales()">
@@ -83,11 +85,11 @@
       <div class="card-content">
         <div class="venta-card-content">
           <div class="venta-text">
-            <h3 class="card-title">Venta</h3>
-            <p class="card-description">Gestiona la venta de tus participaciones asignadas.</p>
+            <h3 class="card-title">Entrega</h3>
+            <p class="card-description">Gestiona la entrega de tus participaciones asignadas.</p>
           </div>
           <div class="venta-illustration">
-          <img src="/assets/images/venta.png" alt="Venta" class="card-image card-image-large">
+          <img src="/assets/images/venta.png" alt="Entrega" class="card-image card-image-large">
           </div>
         </div>
       </div>

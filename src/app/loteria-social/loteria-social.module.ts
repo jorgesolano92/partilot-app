@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { LoteriaSocialPageRoutingModule } from './loteria-social-routing.module';
+import { AgeResponsibleBadgeModule } from '../shared/age-responsible-badge/age-responsible-badge.module';
 
 import { LoteriaSocialPage } from './loteria-social.page';
 
@@ -13,7 +14,8 @@ import { LoteriaSocialPage } from './loteria-social.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    LoteriaSocialPageRoutingModule
+    LoteriaSocialPageRoutingModule,
+    AgeResponsibleBadgeModule,
   ],
   declarations: [LoteriaSocialPage]
 })

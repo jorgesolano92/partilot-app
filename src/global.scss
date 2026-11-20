@@ -609,3 +609,16 @@ ion-modal.alert-modal-box .ion-page {
   border-radius: 20px;
 }
 
+/* Aviso vendedor: entregas fuera de la app / sin pagos in-app */
+.seller-delivery-disclaimer {
+  margin: 8px 12px 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff8e8;
+  border: 1px solid #f0d9a8;
+  color: #5c4a1f;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+

@@ -266,3 +266,58 @@ ion-menu {
     }
   }
 }
+
+.geo-block-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(15, 15, 15, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.geo-block-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+
+  .age-pill {
+    display: inline-flex;
+    margin-bottom: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #111;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 1.25rem;
+  }
+
+  p {
+    color: #555;
+    line-height: 1.45;
+    margin: 0 0 12px;
+  }
+
+  ion-button {
+    --background: #111;
+    --border-radius: 28px;
+    text-transform: none;
+    font-weight: 600;
+  }
+
+  .geo-jr a {
+    color: #c45c26;
+    font-size: 13px;
+    font-weight: 600;
+  }
+}

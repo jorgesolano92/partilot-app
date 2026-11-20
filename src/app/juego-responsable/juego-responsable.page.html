@@ -1,0 +1,98 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="authService.getHomeTabHref()"></ion-back-button>
+    </ion-buttons>
+    <ion-title></ion-title>
+    <div class="header-content">
+      <img src="/assets/logo_menu.svg" alt="PARTILOT" class="logo-image">
+    </div>
+    <ion-buttons slot="end">
+      <ion-menu-button menu="main-menu"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="jr-content">
+  <div class="jr-container">
+    <div class="jr-badge-row">
+      <span class="age-pill">+18</span>
+      <h1>Juega bien, juega con responsabilidad</h1>
+    </div>
+
+    <p class="lead">
+      Por favor, juegue de forma responsable y apueste sólo lo que pueda permitirse.
+      Para obtener ayuda y apoyo sobre la adicción al juego, póngase en contacto con
+      <strong>FEJAR</strong> en el
+      <a [href]="'tel:' + fejarPhoneTel">{{ fejarPhone }}</a>
+      o visite
+      <a href="javascript:void(0)" (click)="openFejar()">https://fejar.org/</a>.
+    </p>
+
+    <section class="jr-card">
+      <h2>¿Qué es el Juego Responsable?</h2>
+      <p>
+        El Juego Responsable consiste en la elección racional y sensata de las opciones de juego,
+        que tenga en cuenta la situación y circunstancias personales del jugador, impidiendo que
+        el juego se pueda convertir en un problema. El Juego Responsable implica una decisión
+        informada y educada por parte de los consumidores con el único objetivo del entretenimiento,
+        la distracción y en el cual el valor de lo jugado no supera nunca lo que el individuo se puede permitir.
+      </p>
+      <p>
+        El Juego Responsable es una actividad de ocio y entretenimiento y nunca interfiere en las
+        obligaciones sociales, profesionales o familiares.
+      </p>
+    </section>
+
+    <section class="jr-card">
+      <h2>El jugador responsable</h2>
+      <ol>
+        <li>
+          El jugador responsable juega para divertirse y entretenerse, no para ganar dinero.
+          Sabe que puede tener suerte y ganar, pero que también puede perder.
+        </li>
+        <li>
+          Jugar responsablemente significa tomar decisiones basadas en hechos, manteniendo el
+          control sobre el tiempo y el dinero que quiere gastar.
+        </li>
+        <li>
+          Jugando responsablemente, hace que la actividad del juego sea una experiencia agradable,
+          divertida, sin riesgo de daño a sí mismo, familia y/o amigos.
+        </li>
+      </ol>
+    </section>
+
+    <section class="jr-card">
+      <h2>Cómo jugar con responsabilidad</h2>
+      <ol>
+        <li>Juega por diversión, no por dinero o para evadir problemas.</li>
+        <li>No persigas o intentes recuperar las pérdidas.</li>
+        <li>Juega para divertirte, disfruta al ganar, pero considera que también puedes perder.</li>
+        <li>No pidas dinero prestado para jugar.</li>
+        <li>
+          Juega solo el dinero que hayas decidido destinar a la diversión. No utilices nunca el
+          dinero que destines habitualmente a tus gastos fijos, como comida o transporte.
+        </li>
+        <li>En tiempo de crisis emocional disminuye el autocontrol: evita jugar en esos momentos.</li>
+        <li>No permitas que el juego afecte a tus relaciones con la familia y amigos.</li>
+        <li>Establece un límite de tiempo y de dinero para jugar.</li>
+        <li>El único juego medido es el juego divertido.</li>
+      </ol>
+    </section>
+
+    <section class="jr-card">
+      <h2>Más información</h2>
+      <p>Para más información:</p>
+      <ion-button expand="block" class="jr-link-btn" (click)="openJugarBien()">
+        Visitar jugarbien.es
+      </ion-button>
+      <ion-button expand="block" fill="outline" class="jr-link-btn outline" (click)="openFejar()">
+        Visitar fejar.org
+      </ion-button>
+      <p class="phone">
+        Teléfono gratuito FEJAR:
+        <a [href]="'tel:' + fejarPhoneTel">{{ fejarPhone }}</a>
+      </p>
+    </section>
+  </div>
+</ion-content>

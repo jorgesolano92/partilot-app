@@ -45,7 +45,7 @@
         fill="clear"
         [disabled]="true">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -57,6 +57,11 @@
       </ion-button>
     </div>
 
+    <app-age-responsible-badge></app-age-responsible-badge>
+    <p class="seller-delivery-disclaimer">
+      Registro de entregas realizadas fuera de la app. No se procesan pagos en esta aplicación.
+    </p>
+
     <!-- Spinner de carga -->
     <div class="loading-section" *ngIf="loading">
       <ion-spinner name="crescent"></ion-spinner>
@@ -67,7 +72,7 @@
     <div class="venta-container" *ngIf="isVendedor && showEntitySelection && !showLotteriesList && !showVentaView && !loading">
     <div class="section-header">
       <h1 class="section-title">Entidades</h1>
-      <p class="section-subtitle">Selecciona la entidad para la venta</p>
+      <p class="section-subtitle">Selecciona la entidad para la entrega</p>
     </div>
     
     <div class="entities-grid">
@@ -84,7 +89,7 @@
   <div class="venta-container" *ngIf="isVendedor && showLotteriesList && !showVentaView">
     <div class="section-header">
       <h1 class="section-title">Sorteos</h1>
-      <p class="section-subtitle">Selecciona el Sorteo para la venta</p>
+      <p class="section-subtitle">Selecciona el Sorteo para la entrega</p>
       <div class="entity-logo-small" *ngIf="selectedEntity?.image">
         <img [src]="getImageUrl(selectedEntity.image)" [alt]="selectedEntity.name">
       </div>
@@ -128,7 +133,7 @@
   <div class="venta-container" *ngIf="isVendedor && showReserveSelection && !showVentaView && !loading">
     <div class="section-header">
       <h1 class="section-title">Reserva</h1>
-      <p class="section-subtitle">Selecciona la reserva para la venta</p>
+      <p class="section-subtitle">Selecciona la reserva para la entrega</p>
       <div class="participaciones-head-sorteo" *ngIf="selectedLottery">Sorteo: {{ selectedLottery.name }}</div>
     </div>
     <div class="lotteries-list">
@@ -159,8 +164,8 @@
     
     <!-- Selector de tipo de participación -->
     <div class="section-header">
-      <h1 class="section-title">Vender</h1>
-      <p class="section-subtitle">Gestiona la venta de participaciones</p>
+      <h1 class="section-title">Entregar</h1>
+      <p class="section-subtitle">Gestiona la entrega de participaciones</p>
       <div class="entity-logo-small" *ngIf="selectedEntity">
         <img *ngIf="selectedEntity.image" [src]="getImageUrl(selectedEntity.image)" [alt]="selectedEntity.name">
         <div *ngIf="!selectedEntity.image" class="entity-logo-fallback">
@@ -185,7 +190,7 @@
     <!-- Sección Escáner (solo para físicas) -->
     <div class="escaner-section" *ngIf="tipoParticipacion === 'fisicas'" style="text-align: center;">
       <h3 class="section-title">Escaner</h3>
-      <p class="section-subtitle">Lee el código QR y registra la venta</p>
+      <p class="section-subtitle">Lee el código QR y registra la entrega</p>
       <ion-button class="escanear-qr-button" expand="block" (click)="irAVentaQR()">
         Escanear QR
       </ion-button>
@@ -194,7 +199,7 @@
     <!-- Sección Manual -->
     <div class="manual-section" style="text-align: center;">
       <h3 class="section-title">Manual</h3>
-      <p class="section-subtitle">Registra la Venta</p>
+      <p class="section-subtitle">Registra la entrega</p>
     </div>
 
     <!-- Card Manual -->
@@ -211,7 +216,7 @@
             Nº reservado: <strong>{{ getReservaNumbersDisplay() }}</strong>
           </p>
           <p class="disponibilidad-fisica" *ngIf="setSeleccionado && !setInputError">
-            Disponibles para vender: <strong>{{ disponibilidad }}</strong>
+            Disponibles para entregar: <strong>{{ disponibilidad }}</strong>
           </p>
           <p class="set-input-error" *ngIf="setInputError">{{ setInputError }}</p>
         </div>
@@ -332,7 +337,7 @@
         expand="block"
         [disabled]="!puedeVender()"
         (click)="mostrarResumen()">
-        Vender
+        Entregar
       </ion-button>
     </div>
   </div>
@@ -341,8 +346,8 @@
     <div class="venta-container" *ngIf="!isVendedor">
       <div class="empty-state">
         <ion-icon name="cart-outline" class="empty-icon"></ion-icon>
-        <h2>Venta</h2>
-        <p>Esta vista está disponible solo para vendedores</p>
+        <h2>Entrega</h2>
+        <p>Esta vista está disponible solo para colaboradores</p>
       </div>
     </div>
   </div>
@@ -355,7 +360,7 @@
       <div class="modal-header-left">
         <ion-icon name="person-outline"></ion-icon>
         <div>
-          <h2 class="modal-title">Contacto del comprador</h2>
+          <h2 class="modal-title">Contacto del destinatario</h2>
           <p class="modal-subtitle">Elige cómo enviar las instrucciones. Es obligatorio.</p>
         </div>
       </div>
@@ -384,12 +389,12 @@
       </div>
 
       <ion-item class="input-item" *ngIf="canalContactoDigital === 'email'">
-        <ion-label position="stacked">Email del comprador</ion-label>
+        <ion-label position="stacked">Email del destinatario</ion-label>
         <ion-input type="email" [(ngModel)]="emailCliente" placeholder="cliente@ejemplo.com"></ion-input>
       </ion-item>
 
       <ion-item class="input-item" *ngIf="canalContactoDigital === 'telefono'">
-        <ion-label position="stacked">Teléfono del comprador</ion-label>
+        <ion-label position="stacked">Teléfono del destinatario</ion-label>
         <ion-input type="tel" [(ngModel)]="telefonoCliente" placeholder="34600111222"></ion-input>
       </ion-item>
     </div>
@@ -413,7 +418,7 @@
     </div>
     <div class="modal-content confirmacion-contacto-body">
       <p class="confirmacion-intro">
-        Va a vender <strong>{{ totalParticipaciones }}</strong>
+        Va a entregar <strong>{{ totalParticipaciones }}</strong>
         {{ totalParticipaciones === 1 ? 'participación' : 'participaciones' }} a:
       </p>
       <p class="confirmacion-contacto-valor">{{ contactoConfirmacionDisplay }}</p>
@@ -508,20 +513,20 @@
 <!-- Modal de Éxito -->
 <div class="modal-overlay" *ngIf="mostrarModalExito" (click)="cerrarModalExito()">
   <div class="modal-container exito-modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title-exito">Venta registrada con éxito</h2>
+    <h2 class="modal-title-exito">Entrega registrada con éxito</h2>
     <div class="modal-content-exito">
-      <p>Puedes consultar el detalle en el historial de ventas o continuar con una nueva venta.</p>
+      <p>Puedes consultar el detalle en el historial de entregas o continuar con una nueva entrega.</p>
       <p *ngIf="ultimaVentaMaskedContact" class="codigo-vinculacion-exito">
-        Comprador: <strong>{{ ultimaVentaMaskedContact }}</strong>
+        Destinatario: <strong>{{ ultimaVentaMaskedContact }}</strong>
       </p>
       <p *ngIf="ultimaVentaConEmail || (ultimaVentaCanal === 'email' && notificacionEnviada)" class="codigo-vinculacion-exito">
-        Se ha enviado un correo al comprador con las instrucciones para reclamar sus participaciones.
+        Se ha enviado un correo al destinatario con las instrucciones para reclamar sus participaciones.
       </p>
       <p *ngIf="ultimaVentaCanal === 'sms' && notificacionEnviada" class="codigo-vinculacion-exito whatsapp-ok">
-        SMS enviado al comprador correctamente.
+        SMS enviado al destinatario correctamente.
       </p>
       <p *ngIf="puedeReenviarMensajeExito && !notificacionEnviada" class="codigo-vinculacion-exito">
-        Pulsa el botón para enviar el mensaje al comprador registrado.
+        Pulsa el botón para enviar el mensaje al destinatario registrado.
       </p>
       <div *ngIf="puedeReenviarMensajeExito" class="whatsapp-exito-block">
         <ion-button

@@ -39,7 +39,7 @@
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -410,7 +410,7 @@
         <ion-icon name="close"></ion-icon>
       </ion-button>
     </div>
-    <p class="modal-regalo-texto">Introduce el código que te dio el vendedor al comprar participaciones digitales.</p>
+    <p class="modal-regalo-texto">Introduce el código que te dio el vendedor al adquirir participaciones digitales.</p>
     <p class="modal-regalo-aviso">No uses <strong>0</strong>, <strong>o</strong> ni <strong>O</strong>. Puedes escribirlo en mayúsculas o minúsculas.</p>
     <ion-item lines="full" class="ion-no-padding modal-regalo-input">
       <ion-icon name="key-outline" slot="start"></ion-icon>

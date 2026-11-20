@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { VentaManualPageRoutingModule } from './venta-manual-routing.module';
+import { AgeResponsibleBadgeModule } from '../shared/age-responsible-badge/age-responsible-badge.module';
 
 import { VentaManualPage } from './venta-manual.page';
 
@@ -13,7 +14,8 @@ import { VentaManualPage } from './venta-manual.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    VentaManualPageRoutingModule
+    VentaManualPageRoutingModule,
+    AgeResponsibleBadgeModule,
   ],
   declarations: [VentaManualPage]
 })

@@ -18,12 +18,11 @@
 
 <ion-content [fullscreen]="true" class="loteria-social-content">
   <div class="loteria-social-container">
-    
-    <!-- Selector de rol (Usuario/Vendedor/Gestor) - solo opciones permitidas -->
+
     <div class="rol-selector" *ngIf="authService.showRoleSelector()">
-      <ion-button 
+      <ion-button
         *ngIf="authService.canViewUsuario()"
-        class="rol-button" 
+        class="rol-button"
         [class.active]="rolActual === 'usuario'"
         fill="clear"
         (click)="cambiarRol('usuario')"
@@ -31,19 +30,19 @@
         <ion-icon name="person-outline" slot="start"></ion-icon>
         Usuario
       </ion-button>
-      <ion-button 
+      <ion-button
         *ngIf="authService.canSeller()"
-        class="rol-button" 
+        class="rol-button"
         [class.active]="rolActual === 'vendedor'"
         fill="clear"
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
-      <ion-button 
+      <ion-button
         *ngIf="authService.canManager()"
-        class="rol-button" 
+        class="rol-button"
         [class.active]="rolActual === 'gestor'"
         fill="clear"
         (click)="cambiarRol('gestor')"
@@ -53,60 +52,18 @@
       </ion-button>
     </div>
 
-    <!-- Card de Lotería Social -->
-    <div class="info-card">
+    <app-age-responsible-badge></app-age-responsible-badge>
+
+    <div class="info-card info-card-web">
       <h2>Lotería Social</h2>
-      <p>Selecciona con que entidad quieres colaborar</p>
-    </div>
-
-    <!-- Input de código de entidad -->
-    <div class="codigo-entidad-section">
-      <ion-item class="codigo-input-item">
-        <ion-label position="stacked">Introduce el código de tu Entidad</ion-label>
-        <ion-input 
-          [(ngModel)]="codigoEntidad" 
-          placeholder=""
-          type="text">
-        </ion-input>
-      </ion-item>
-      <ion-button 
-        class="entrar-button" 
-        expand="block" 
-        (click)="entrarConCodigo()"
-        [disabled]="!codigoEntidad || codigoEntidad.trim() === ''">
-        Entrar
+      <p>
+        En Lotería Social puedes adquirir las participaciones de tu entidad desde nuestra web.
+        La adquisición se realiza fuera de esta aplicación, en el navegador de tu móvil.
+      </p>
+      <ion-button class="jugar-aqui-button" expand="block" (click)="jugarAqui()">
+        Juega aquí
       </ion-button>
-    </div>
-
-    <!-- Sección de búsqueda de entidades -->
-    <div class="entidades-section">
-      <h3 class="entidades-title">Entidades</h3>
-      <ion-searchbar 
-        [(ngModel)]="busquedaEntidad"
-        placeholder="Buscar Entidad"
-        (ionInput)="buscarEntidades()"
-        class="entidades-searchbar">
-      </ion-searchbar>
-      
-      <!-- Grid de entidades -->
-      <div class="entidades-grid">
-        <div 
-          class="entidad-item" 
-          *ngFor="let entidad of entidadesFiltradas"
-          (click)="irAEntidad(entidad)">
-          <div class="entidad-placeholder">
-            <ion-icon name="business-outline" *ngIf="!entidad.imagen"></ion-icon>
-            <img *ngIf="entidad.imagen" [src]="entidad.imagen" [alt]="entidad.nombre">
-          </div>
-          <p class="entidad-nombre">{{ entidad.nombre }}</p>
-        </div>
-        
-        <!-- Placeholders vacíos para completar el grid -->
-        <div 
-          class="entidad-item entidad-placeholder-empty" 
-          *ngFor="let i of getPlaceholders()">
-        </div>
-      </div>
+      <p class="web-note">Se abrirá el navegador del dispositivo. No se procesan pagos dentro de la app.</p>
     </div>
 
   </div>

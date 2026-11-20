@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { AuthService } from '../core/services/auth.service';
 import { LegalService, LegalClientConfig } from '../core/services/legal.service';
+import { isAtLeastAge, MIN_GAMBLING_AGE } from '../core/utils/age.util';
 
 @Component({
   selector: 'app-registro',
@@ -87,6 +88,13 @@ export class RegistroPage implements OnInit {
     }
     if (!this.fechaNacimiento) {
       await this.mostrarAlerta('Atención', 'Introduce tu fecha de nacimiento.');
+      return;
+    }
+    if (!isAtLeastAge(this.fechaNacimiento, MIN_GAMBLING_AGE)) {
+      await this.mostrarAlerta(
+        'Acceso restringido',
+        `Debes tener al menos ${MIN_GAMBLING_AGE} años para registrarte en PARTILOT. El juego está prohibido a menores.`
+      );
       return;
     }
     if (!this.aceptarCondiciones) {
