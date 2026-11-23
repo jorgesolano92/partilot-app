@@ -23,7 +23,7 @@ export class PreguntasFrecuentesPage implements OnInit {
     this.preguntas = [
       {
         pregunta: '¿Cómo puedo participar en los sorteos?',
-        respuesta: 'Para participar en los sorteos, debes comprar una participación desde la aplicación. Puedes hacerlo desde la sección de venta o escaneando un código QR de un vendedor autorizado.'
+        respuesta: 'Puedes adquirir participaciones a través de un vendedor autorizado (entrega presencial) o desde la web de Lotería Social («Juega aquí»). En la app del usuario no se procesan pagos.'
       },
       {
         pregunta: '¿Cómo sé si he ganado?',
@@ -43,7 +43,7 @@ export class PreguntasFrecuentesPage implements OnInit {
       },
       {
         pregunta: '¿Cuándo se realizan los sorteos?',
-        respuesta: 'Los sorteos se realizan diariamente a las 19:00 horas. Puedes ver la cuenta regresiva en la página principal de la aplicación. Asegúrate de comprar tu participación antes de esa hora.'
+        respuesta: 'Los sorteos se realizan según el calendario de cada lotería. Consulta la fecha del sorteo en tu participación o en la sección de sorteos de la aplicación.'
       },
       {
         pregunta: '¿Qué pasa si pierdo mi boleto físico?',
@@ -55,11 +55,11 @@ export class PreguntasFrecuentesPage implements OnInit {
       },
       {
         pregunta: '¿Puedo cancelar una participación?',
-        respuesta: 'Las participaciones solo se pueden cancelar antes de que comience el sorteo. Si ya compraste una participación y el sorteo no ha comenzado, contacta con soporte para solicitar la cancelación y reembolso.'
+        respuesta: 'Las participaciones solo se pueden gestionar según las condiciones de la entidad y del sorteo. Si el sorteo no ha comenzado, contacta con soporte o con tu entidad para consultar opciones.'
       },
       {
         pregunta: '¿Cómo funcionan las participaciones en la lotería social?',
-        respuesta: 'La lotería social te permite crear o unirte a sorteos grupales. Puedes invitar a tus amigos y familiares a participar juntos. Si el grupo gana, el premio se divide entre todos los participantes según las participaciones que cada uno haya comprado.'
+        respuesta: 'Lotería Social te permite adquirir participaciones de entidades colaboradoras desde la web (botón «Juega aquí»). Si el grupo o la entidad gana, el premio se gestiona según las condiciones de esa entidad.'
       },
       {
         pregunta: '¿Qué información personal se comparte?',
@@ -67,7 +67,7 @@ export class PreguntasFrecuentesPage implements OnInit {
       },
       {
         pregunta: '¿Hay un límite de participaciones por sorteo?',
-        respuesta: 'No hay un límite estricto, pero recomendamos participar de forma responsable. Puedes comprar múltiples participaciones para el mismo sorteo si lo deseas.'
+        respuesta: 'No hay un límite estricto, pero recomendamos participar de forma responsable (+18 | Juego responsable). Puedes adquirir varias participaciones para el mismo sorteo si lo deseas.'
       }
     ];
 

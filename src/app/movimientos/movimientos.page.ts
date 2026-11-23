@@ -44,7 +44,7 @@ export class MovimientosPage implements OnInit {
           {
             id: 2,
             tipo: 'gasto',
-            concepto: 'Compra de participación',
+            concepto: 'Participación adquirida',
             monto: 5.00,
             fecha: new Date('2024-01-16T14:20:00'),
             detalle: 'Participación #12346'

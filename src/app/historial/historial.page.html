@@ -39,7 +39,7 @@
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -59,7 +59,8 @@
         <ion-icon name="time-outline" class="title-icon"></ion-icon>
         Historial
       </h1>
-      <p class="page-subtitle">Aquí puedes ver el historial</p>
+      <p class="page-subtitle" *ngIf="rolActual === 'usuario'">Participaciones recibidas y movimientos de tu cartera</p>
+      <p class="page-subtitle" *ngIf="rolActual !== 'usuario'">Aquí puedes ver el historial</p>
     </div>
 
     <app-participation-list-filters
@@ -159,12 +160,12 @@
               <div class="vendedor-detail-row" *ngIf="item.participacion.donativo"><span class="vendedor-detail-label">Donativo:</span><span class="vendedor-detail-value">€{{ item.participacion.donativo | number:'1.2-2' }}</span></div>
               <div class="vendedor-detail-row"><span class="vendedor-detail-label">Importe total:</span><span class="vendedor-detail-value">€{{ item.participacion.importeTotal | number:'1.2-2' }}</span></div>
               <div class="vendedor-detail-row vendedor-detail-row--long" *ngIf="esVentaDigitalPendiente(item) && item.participacion.clienteEmail">
-                <span class="vendedor-detail-label">Comprador:</span>
+                <span class="vendedor-detail-label">Destinatario:</span>
                 <span class="vendedor-detail-value vendedor-detail-value--long">{{ item.participacion.clienteEmail }}</span>
               </div>
               <div class="vendedor-detail-row" *ngIf="esVentaDigitalPendiente(item)">
                 <span class="vendedor-detail-label">Estado:</span>
-                <span class="vendedor-detail-value">Pendiente de registro del comprador</span>
+                <span class="vendedor-detail-value">Pendiente de registro del destinatario</span>
               </div>
               <div class="vendedor-detail-row" *ngIf="esVentaDigitalPendiente(item) && (item.participacion.validUntil || item.valid_until)">
                 <span class="vendedor-detail-label">Válida hasta:</span>

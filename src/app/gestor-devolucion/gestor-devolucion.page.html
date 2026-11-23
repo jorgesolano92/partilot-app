@@ -58,7 +58,7 @@
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button
         *ngIf="authService.canManager()"
@@ -140,8 +140,8 @@
     <div class="view-section" *ngIf="step === 'vendedores' && !loading">
       <div class="section-header devolucion-qr-header">
         <div class="header-titles">
-          <h1 class="section-title">Vendedor</h1>
-          <p class="section-subtitle">Selecciona el vendedor del cual devolver participaciones</p>
+          <h1 class="section-title">Colaborador</h1>
+          <p class="section-subtitle">Selecciona el colaborador del cual devolver participaciones</p>
         </div>
         <div class="entity-logo-small" *ngIf="selectedEntity?.image">
           <img [src]="getImageUrl(selectedEntity.image)" [alt]="selectedEntity.name">
@@ -217,7 +217,7 @@
         </div>
         <p class="disponibles-devolver-nota">No se pueden devolver las ya vendidas.</p>
         <p class="disponibles-devolver-info" *ngIf="!selectedSeller && !loadingAvailable">
-          Las digitales no se asignan a vendedores (pool de la entidad). Al confirmar, las digitales no vendidas de la reserva se devuelven automáticamente; las vendidas entran en la liquidación. Aquí solo eliges las físicas.
+          Las digitales no se asignan a colaboradores (pool de la entidad). Al confirmar, las digitales no vendidas de la reserva se devuelven automáticamente; las vendidas entran en la liquidación. Aquí solo eliges las físicas.
         </p>
       </div>
 
@@ -361,7 +361,7 @@
           <strong>{{ summary.total_participations }} ({{ totalParticipacionesImporte | number:'1.2-2' }}€)</strong>
         </div>
         <div class="liquidacion-participaciones-row">
-          <span>Ventas registradas:</span>
+          <span>Entregas registradas:</span>
           <strong>{{ summary.ventas_registradas ?? summary.sold_participations }} ({{ ventasRegistradasImporte | number:'1.2-2' }}€)</strong>
         </div>
         <div class="liquidacion-participaciones-row">

@@ -58,6 +58,10 @@ const routes: Routes = [
     loadChildren: () => import('./condiciones-legales/condiciones-legales.module').then( m => m.CondicionesLegalesPageModule)
   },
   {
+    path: 'juego-responsable',
+    loadChildren: () => import('./juego-responsable/juego-responsable.module').then( m => m.JuegoResponsablePageModule)
+  },
+  {
     path: 'eliminar-cuenta',
     loadChildren: () => import('./eliminar-cuenta/eliminar-cuenta.module').then(m => m.EliminarCuentaPageModule),
     canActivate: [loggedInGuard]

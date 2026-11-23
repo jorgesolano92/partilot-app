@@ -32,7 +32,7 @@
         fill="clear"
         (click)="cambiarAVendedor()">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -43,6 +43,8 @@
         Gestor
       </ion-button>
     </div>
+
+    <app-age-responsible-badge></app-age-responsible-badge>
 
     <!-- Bloque: ¿Primera vez aquí? -->
     <div class="home-block tutorial-block" (click)="verTutoriales()">
@@ -81,7 +83,7 @@
       <div class="block-content">
         <div class="block-text-content">
           <h3 class="block-title">Loteria Social</h3>
-          <p class="block-description">Adquiere participaciones de nuestras entidades colaboradoras de toda España.</p>
+          <p class="block-description">Participaciones de entidades colaboradoras desde la web. Pulsa para abrir «Juega aquí».</p>
         </div>
         <div class="block-illustration-right">
           <img src="/assets/images/loteria_social.png" alt="Loteria Social" class="illustration-image-large">

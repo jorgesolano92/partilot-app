@@ -139,7 +139,7 @@ export class HistorialPage implements OnInit, OnDestroy {
         error: () => {
           this.loadingHistorial = false;
           this.errorHistorial =
-            'No se pudo cargar el historial. Comprueba la conexión. El historial de ventas está en el servidor, no en este dispositivo.';
+            'No se pudo cargar el historial. Comprueba la conexión. El historial de entregas está en el servidor, no en este dispositivo.';
           this.historial = [];
           this.listMeta = null;
         }
@@ -672,11 +672,11 @@ export class HistorialPage implements OnInit, OnDestroy {
 
   getTituloTipo(tipo: string, item?: any): string {
     if (tipo === 'venta-digital' && item && this.esVentaDigitalPendiente(item)) {
-      return 'Venta Digital (pendiente)';
+      return 'Entrega digital (pendiente)';
     }
     const titulos: { [key: string]: string } = {
-      'venta': 'Venta',
-      'venta-digital': 'Venta Digital',
+      'venta': 'Entrega',
+      'venta-digital': 'Entrega digital',
       'venta_digital_recibida': 'Participaciones digitales recibidas',
       'digitalizacion': 'Digitalización',
       'regalo': 'Envio Regalo',
@@ -730,7 +730,7 @@ export class HistorialPage implements OnInit, OnDestroy {
     const contacto =
       item.masked_buyer_contact || item.participacion?.clienteContactoEnmascarado;
     if (item.tipo === 'venta-digital' && this.esVentaDigitalPendiente(item)) {
-      const base = entidad ? `Venta digital ${entidad}` : 'Venta digital';
+      const base = entidad ? `Entrega digital ${entidad}` : 'Entrega digital';
       return contacto ? `${base} · ${contacto}` : `${base} · Pendiente de registro`;
     }
     if (entidad) return `Participación ${entidad}`;
@@ -814,9 +814,9 @@ export class HistorialPage implements OnInit, OnDestroy {
   /** Título específico para ventas en el diseño de vendedor */
   getTituloVenta(tipo: string): string {
     if (tipo === 'venta-digital') {
-      return 'Venta Digital';
+      return 'Entrega digital';
     }
-    return 'Venta';
+    return 'Entrega';
   }
 
   /** Toggle del detalle expandido */

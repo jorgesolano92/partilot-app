@@ -6,6 +6,7 @@ import { Tab3Page } from './tab3.page';
 import { ExploreContainerComponentModule } from '../explore-container/explore-container.module';
 
 import { Tab3PageRoutingModule } from './tab3-routing.module';
+import { AgeResponsibleBadgeModule } from '../shared/age-responsible-badge/age-responsible-badge.module';
 
 @NgModule({
   imports: [
@@ -13,7 +14,8 @@ import { Tab3PageRoutingModule } from './tab3-routing.module';
     CommonModule,
     FormsModule,
     ExploreContainerComponentModule,
-    Tab3PageRoutingModule
+    Tab3PageRoutingModule,
+    AgeResponsibleBadgeModule,
   ],
   declarations: [Tab3Page]
 })

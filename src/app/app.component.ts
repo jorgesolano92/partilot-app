@@ -5,6 +5,7 @@ import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
 import { BiometricService } from './core/services/biometric.service';
 import { PushNotificationsService } from './core/services/push-notifications.service';
+import { SpainLocationService, SpainLocationState } from './core/services/spain-location.service';
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -26,6 +27,7 @@ export class AppComponent implements OnInit, OnDestroy {
   userName: string = '';
   userEmail: string = '';
   userImage: string | null = null;
+  geoState: SpainLocationState = 'checking';
 
   private appStateListener: PluginListenerHandle | null = null;
   private appUrlOpenListener: PluginListenerHandle | null = null;
@@ -35,7 +37,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private router: Router,
     public authService: AuthService,
     private biometricService: BiometricService,
-    private pushNotificationsService: PushNotificationsService
+    private pushNotificationsService: PushNotificationsService,
+    private spainLocation: SpainLocationService
   ) {
     // Detectar cambios de ruta
     this.router.events.pipe(
@@ -47,18 +50,28 @@ export class AppComponent implements OnInit, OnDestroy {
     });
   }
 
+  get geoBlockVisible(): boolean {
+    return this.geoState !== 'allowed';
+  }
+
   async ngOnInit() {
     this.detectarRol();
     this.actualizarUsuario();
     await this.inicializarStatusBar();
     await this.registrarListenerEstadoApp();
     await this.registrarDeepLinks();
+    await this.reintentarUbicacion();
     try {
       await this.pushNotificationsService.initialize();
       this.pushNotificationsService.syncTokenWithBackend();
     } catch (e) {
       console.warn('Push notifications init:', e);
     }
+  }
+
+  async reintentarUbicacion(): Promise<void> {
+    this.geoState = 'checking';
+    this.geoState = await this.spainLocation.ensureSpainAccess();
   }
 
   ngOnDestroy(): void {

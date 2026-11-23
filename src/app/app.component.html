@@ -69,7 +69,7 @@
         
         <ion-item routerLink="/tabs/vendedor-tab1" routerDirection="root" (click)="cerrarMenu()">
           <ion-icon name="cash-outline" slot="start"></ion-icon>
-          <ion-label>Venta</ion-label>
+          <ion-label>Entrega</ion-label>
         </ion-item>
         
         <ion-item routerLink="/tabs/vendedor-tab2" routerDirection="root" (click)="cerrarMenu()">
@@ -105,7 +105,7 @@
         
         <ion-item routerLink="/tabs/gestor-tab2" routerDirection="root" (click)="cerrarMenu()">
           <ion-icon name="people-outline" slot="start"></ion-icon>
-          <ion-label>Vendedores</ion-label>
+          <ion-label>Colaboradores</ion-label>
         </ion-item>
         
         <ion-item routerLink="/tabs/gestor-tab4" routerDirection="root" (click)="cerrarMenu()">
@@ -135,11 +135,11 @@
         <ion-label>FAQ</ion-label>
       </ion-item>
       
-      <ion-item routerLink="/condiciones-legales" routerDirection="forward" (click)="cerrarMenu()">
+      <ion-item routerLink="/juego-responsable" routerDirection="forward" (click)="cerrarMenu()">
         <div class="icon-18-circle" slot="start">
           <span>18</span>
         </div>
-        <ion-label>Juego Responsable</ion-label>
+        <ion-label>Juego responsable</ion-label>
       </ion-item>
       
       <ion-item routerLink="/tabs/notificaciones" routerDirection="forward" (click)="cerrarMenu()" style="margin-top: 10vh;">
@@ -188,4 +188,25 @@
 
 <ion-app>
   <ion-router-outlet id="main-content"></ion-router-outlet>
+
+  <div class="geo-block-overlay" *ngIf="geoBlockVisible">
+    <div class="geo-block-card">
+      <div class="age-pill">+18</div>
+      <h2>Acceso solo desde España</h2>
+      <p *ngIf="geoState === 'checking'">Comprobando tu ubicación…</p>
+      <p *ngIf="geoState === 'blocked'">
+        PARTILOT solo está disponible en territorio español. Detectamos que te encuentras fuera de España.
+      </p>
+      <p *ngIf="geoState === 'denied'">
+        Necesitamos acceso a tu ubicación para verificar que estás en España. Activa el permiso de ubicación e inténtalo de nuevo.
+      </p>
+      <p *ngIf="geoState === 'unavailable'">
+        No hemos podido comprobar tu ubicación. Activa el GPS e inténtalo de nuevo.
+      </p>
+      <ion-button expand="block" (click)="reintentarUbicacion()" [disabled]="geoState === 'checking'">
+        Reintentar
+      </ion-button>
+      <p class="geo-jr"><a routerLink="/juego-responsable">+18 | Juego responsable</a></p>
+    </div>
+  </div>
 </ion-app>

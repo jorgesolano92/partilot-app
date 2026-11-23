@@ -46,7 +46,7 @@
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"
@@ -70,7 +70,7 @@
     <div class="participaciones-container" *ngIf="(isVendedor || isGestor) && showEntitySelection && !showTacosList && !showTacoDetail && !loading">
     <div class="section-header">
       <h1 class="section-title">Entidades</h1>
-      <p class="section-subtitle">Selecciona la entidad para la venta</p>
+      <p class="section-subtitle">Selecciona la entidad para la entrega</p>
     </div>
     
     <div class="entities-grid">
@@ -110,7 +110,7 @@
         <span class="summary-total-value">{{ summary.total_participations }} ({{ summary.total_amount | number:'1.2-2' }}€)</span>
       </div>
       <div class="summary-line">
-        <span>Ventas registradas:</span>
+        <span>Entregas registradas:</span>
         <strong>{{ summary.sales_registered }} ({{ summary.sales_amount | number:'1.2-2' }}€)</strong>
       </div>
       <div class="summary-line">
@@ -157,7 +157,7 @@
             </div>
             <div class="taco-subtitle">Particip.: {{ getParticipationsRangeDisplay(taco) }}</div>
             <div class="taco-vendedor" *ngIf="isGestor && taco.seller_name">
-              Vendedor: {{ taco.seller_name }}
+              Colaborador: {{ taco.seller_name }}
             </div>
             <div class="taco-reservation" *ngIf="taco.reservation_numbers_display">Reserva: {{ taco.reservation_numbers_display }}</div>
             <div class="taco-lottery">Sorteo: {{ taco.lottery_name }} - Fecha: {{ formatDate(taco.lottery_date) }}</div>
@@ -171,7 +171,7 @@
         </div>
         <div class="taco-stats">
           <div class="stat-item">
-            <span class="stat-label">Ventas registradas:</span>
+            <span class="stat-label">Entregas registradas:</span>
             <span class="stat-value">{{ taco.sales_registered }}</span>
           </div>
           <div class="stat-item">
@@ -247,7 +247,7 @@
 
         <div class="taco-right-column">
           <div class="taco-resume-box">
-            <div class="resume-row"><span>Ventas registradas:</span><strong>{{ getTacoSalesCount() }} ({{ getTacoSalesAmount() | number:'1.2-2' }}€)</strong></div>
+            <div class="resume-row"><span>Entregas registradas:</span><strong>{{ getTacoSalesCount() }} ({{ getTacoSalesAmount() | number:'1.2-2' }}€)</strong></div>
             <div class="resume-row"><span>Participaciones Devueltas:</span><strong>{{ getTacoReturnedCount() }} ({{ getTacoReturnedAmount() | number:'1.2-2' }}€)</strong></div>
             <div class="resume-row"><span>Disponibles:</span><strong>{{ getTacoAvailableCount() }} ({{ getTacoAvailableAmount() | number:'1.2-2' }}€)</strong></div>
           </div>

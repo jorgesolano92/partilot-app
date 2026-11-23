@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 
 import { LoginPageRoutingModule } from './login-routing.module';
+import { AgeResponsibleBadgeModule } from '../shared/age-responsible-badge/age-responsible-badge.module';
 
 import { LoginPage } from './login.page';
 
@@ -13,7 +14,8 @@ import { LoginPage } from './login.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    LoginPageRoutingModule
+    LoginPageRoutingModule,
+    AgeResponsibleBadgeModule,
   ],
   declarations: [LoginPage]
 })

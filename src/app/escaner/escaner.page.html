@@ -35,7 +35,7 @@
       [disabled]="isRolActivo('vendedor')"
       (click)="cambiarRol('vendedor')">
       <ion-icon name="bag-outline" slot="start"></ion-icon>
-      Vendedor
+      Colaborador
     </ion-button>
     <ion-button
       *ngIf="authService.canManager()"
@@ -119,7 +119,7 @@
       <div class="actions-section">
         <ion-button class="figma-button" expand="block" (click)="mostrarResumenVentaTaco()">
           <ion-icon name="card-outline" slot="start"></ion-icon>
-          Vender – Elegir forma de pago
+          Entregar – Elegir forma de pago
         </ion-button>
         <ion-button fill="outline" expand="block" (click)="cancelarVentaTaco()">
           Cancelar
@@ -132,7 +132,7 @@
   <div class="comprobacion-view venta-individual-vendedor detalle-digitalizar-style" *ngIf="isVendedor && ventaPendienteVendedor && !ventaPendienteTaco && !mostrarModalResumen">
     <div class="digitalizar-container">
       <div class="paso-block detalle-block">
-        <h2 class="section-title">Venta por QR</h2>
+        <h2 class="section-title">Entrega por QR</h2>
         <p class="section-subtitle">Gestiona tus participaciones</p>
 
         <div class="entidad-badge">{{ getEntidadVentaIndividual() }}</div>
@@ -173,7 +173,7 @@
           class="btn-digitalizar"
           expand="block"
           (click)="mostrarResumenVentaIndividual()">
-          Vender
+          Entregar
         </ion-button>
         <ion-button class="btn-block outline" expand="block" (click)="cancelarVentaIndividual()">
           Volver
@@ -188,8 +188,8 @@
       <div class="venta-qr-card">
         <div class="card-header">
           <div class="header-text">
-            <h2 class="card-title">Venta QR</h2>
-            <p class="card-subtitle">Gestiona la venta de participaciones</p>
+            <h2 class="card-title">Entrega QR</h2>
+            <p class="card-subtitle">Gestiona la entrega de participaciones</p>
           </div>
           <ion-button fill="clear" class="close-button" (click)="mostrarInfoDigitalizacion = false; modoEscaneo = true">
             <ion-icon name="close"></ion-icon>
@@ -231,7 +231,7 @@
           </div>
         </div>
         <ion-button class="vender-button" (click)="mostrarResumen()" [disabled]="participacionesDigitalizadas.length === 0">
-          Vender
+          Entregar
         </ion-button>
       </div>
     </div>
@@ -389,9 +389,9 @@
 <!-- Modal de Éxito -->
 <div class="modal-overlay" *ngIf="mostrarModalExito" (click)="cerrarModalExito()">
   <div class="modal-container exito-modal" (click)="$event.stopPropagation()">
-    <h2 class="modal-title-exito">Venta registrada con éxito</h2>
+    <h2 class="modal-title-exito">Entrega registrada con éxito</h2>
     <div class="modal-content-exito">
-      <p>Puedes consultar el detalle en el historial de ventas o continuar con una nueva venta.</p>
+      <p>Puedes consultar el detalle en el historial de entregas o continuar con una nueva entrega.</p>
     </div>
     <ion-button 
       class="aceptar-button" 

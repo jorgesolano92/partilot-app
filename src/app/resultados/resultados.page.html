@@ -39,7 +39,7 @@
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button 
         *ngIf="authService.canManager()"

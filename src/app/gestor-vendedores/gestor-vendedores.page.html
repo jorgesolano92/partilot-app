@@ -52,7 +52,7 @@
         (click)="cambiarRol('vendedor')"
         [disabled]="rolActual === 'vendedor'">
         <ion-icon name="bag-outline" slot="start"></ion-icon>
-        Vendedor
+        Colaborador
       </ion-button>
       <ion-button
         *ngIf="authService.canManager()"
@@ -75,7 +75,7 @@
     <div class="vendedores-container" *ngIf="showEntitySelection && !showSellersList && !loading">
       <div class="section-header">
         <h1 class="section-title">Entidades</h1>
-        <p class="section-subtitle">Selecciona la entidad para la venta</p>
+        <p class="section-subtitle">Selecciona la entidad para la entrega</p>
       </div>
       <div class="entities-grid">
         <div class="entity-card" *ngFor="let entity of entities" (click)="selectEntity(entity)">
@@ -87,25 +87,25 @@
       </div>
     </div>
 
-    <!-- Vista: Añadir Vendedor (pantalla completa con dos tarjetas, captura 1) -->
+    <!-- Vista: Añadir colaborador (pantalla completa con dos tarjetas, captura 1) -->
     <div class="add-seller-screen" *ngIf="showAddSellerScreen && showSellersList">
       <div class="add-seller-header">
         <span class="add-seller-title-icon">+</span>
-        <h1 class="add-seller-title">Añadir Vendedor</h1>
+        <h1 class="add-seller-title">Añadir colaborador</h1>
       </div>
-      <p class="add-seller-subtitle">Nuevo Vendedor</p>
+      <p class="add-seller-subtitle">Nuevo colaborador</p>
       <div class="add-seller-cards">
         <div class="add-seller-type-card" (click)="openPartilotFlow()">
           <div class="add-seller-type-icon sipart">
             <ion-icon name="person-outline"></ion-icon>
           </div>
-          <span class="add-seller-type-label">Vendedor SIPART</span>
+          <span class="add-seller-type-label">Colaborador SIPART</span>
         </div>
         <div class="add-seller-type-card" (click)="openExternalForm()">
           <div class="add-seller-type-icon externo">
             <ion-icon name="person-add-outline"></ion-icon>
           </div>
-          <span class="add-seller-type-label">Vendedor Externo</span>
+          <span class="add-seller-type-label">Colaborador externo</span>
         </div>
       </div>
     </div>
@@ -115,9 +115,9 @@
       <div class="section-header">
         <div class="section-title-row">
           <ion-icon name="bag-outline" class="section-title-icon"></ion-icon>
-          <h1 class="section-title">Vendedores</h1>
+          <h1 class="section-title">Colaboradores</h1>
         </div>
-        <p class="section-subtitle">Gestiona los vendedores.</p>
+        <p class="section-subtitle">Gestiona los colaboradores.</p>
         <div class="entity-logo-small" *ngIf="selectedEntity?.image">
           <img [src]="getImageUrl(selectedEntity.image)" [alt]="selectedEntity.name">
         </div>
@@ -126,7 +126,7 @@
       <div class="list-header">
         <ion-button class="btn-add-seller" fill="solid" (click)="openAddSellerOptions()">
           <ion-icon name="add" slot="start"></ion-icon>
-          Añadir Vendedor
+          Añadir colaborador
         </ion-button>
         <div class="filter-buttons">
           <ion-button class="filter-btn" [class.active]="filterNombre.trim() !== ''" (click)="toggleFilterPanel('nombre')">
@@ -190,11 +190,11 @@
 
       <div class="empty-state" *ngIf="showSellersList && filteredSellers.length === 0 && !loading">
         <ion-icon name="people-outline" class="empty-icon"></ion-icon>
-        <h2>{{ hasActiveFilters ? 'No hay resultados' : 'No hay vendedores' }}</h2>
-        <p>{{ hasActiveFilters ? 'Prueba a cambiar los filtros.' : 'Añade vendedores para esta entidad.' }}</p>
+        <h2>{{ hasActiveFilters ? 'No hay resultados' : 'No hay colaboradores' }}</h2>
+        <p>{{ hasActiveFilters ? 'Prueba a cambiar los filtros.' : 'Añade colaboradores para esta entidad.' }}</p>
         <ion-button *ngIf="!hasActiveFilters" fill="solid" (click)="openAddSellerOptions()">
           <ion-icon name="add" slot="start"></ion-icon>
-          Añadir Vendedor
+          Añadir colaborador
         </ion-button>
       </div>
     </div>
@@ -214,8 +214,8 @@
               <ion-icon *ngIf="!sellerDetail.seller?.image" name="person-outline" class="placeholder-icon"></ion-icon>
             </div>
             <div class="seller-detail-info">
-              <h2 class="seller-detail-name">{{ sellerDetail.seller?.name || 'Vendedor' }}</h2>
-              <p class="seller-detail-role">Vendedor.</p>
+              <h2 class="seller-detail-name">{{ sellerDetail.seller?.name || 'Colaborador' }}</h2>
+              <p class="seller-detail-role">Colaborador.</p>
             </div>
             <div class="seller-detail-actions">
               <ion-button fill="outline" size="small" class="btn-ver-mas" (click)="openVerMasSheet()">Ver más</ion-button>
@@ -241,7 +241,7 @@
             </div>
             <div class="detail-summary-box">
               <p class="detail-summary-first">Total Participaciones: <strong>{{ sellerDetail.participations_summary?.total_participations ?? 0 }} ({{ (sellerDetail.participations_summary?.total_amount ?? 0) | number:'1.2-2' }}€)</strong></p>
-              <p>Ventas registradas: {{ sellerDetail.participations_summary?.sales_registered ?? 0 }} ({{ (sellerDetail.participations_summary?.sales_amount ?? 0) | number:'1.2-2' }}€)</p>
+              <p>Entregas registradas: {{ sellerDetail.participations_summary?.sales_registered ?? 0 }} ({{ (sellerDetail.participations_summary?.sales_amount ?? 0) | number:'1.2-2' }}€)</p>
               <p>Participaciones Devueltas: {{ sellerDetail.participations_summary?.returned_participations ?? 0 }} ({{ (sellerDetail.participations_summary?.returned_amount ?? 0) | number:'1.2-2' }}€)</p>
               <p>Disponibles: {{ sellerDetail.participations_summary?.available_participations ?? 0 }} ({{ (sellerDetail.participations_summary?.available_amount ?? 0) | number:'1.2-2' }}€)</p>
             </div>
@@ -348,8 +348,8 @@
       <div class="ver-mas-header-left">
         <ion-icon name="person-outline" class="ver-mas-header-icon"></ion-icon>
         <div>
-          <h2 class="ver-mas-name">{{ sellerDetail?.seller?.name || 'Vendedor' }}</h2>
-          <p class="ver-mas-role">Vendedor</p>
+          <h2 class="ver-mas-name">{{ sellerDetail?.seller?.name || 'Colaborador' }}</h2>
+          <p class="ver-mas-role">Colaborador</p>
         </div>
       </div>
       <ion-button fill="clear" class="ver-mas-close" (click)="closeVerMasSheet()">
@@ -435,12 +435,12 @@
   </div>
 </div>
 
-<!-- Action sheet: Formulario Vendedor Externo -->
+<!-- Action sheet: Formulario Colaborador externo -->
 <div class="modal-overlay action-sheet-overlay" *ngIf="showExternalFormSheet" (click)="closeExternalFormSheet()">
   <div class="modal-container bottom-sheet-content action-sheet-container form-sheet" (click)="$event.stopPropagation()">
     <div class="form-sheet-handle"></div>
     <div class="action-sheet-header">
-      <h2>Datos Vendedor (Externo)</h2>
+      <h2>Datos colaborador (externo)</h2>
       <ion-button fill="clear" class="close-btn" (click)="closeExternalFormSheet()">
         <ion-icon name="close"></ion-icon>
       </ion-button>
