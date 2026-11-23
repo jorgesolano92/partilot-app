@@ -193,15 +193,17 @@
     <div class="geo-block-card">
       <div class="age-pill">+18</div>
       <h2>Acceso solo desde España</h2>
-      <p *ngIf="geoState === 'checking'">Comprobando tu ubicación…</p>
+      <p *ngIf="geoState === 'checking'">
+        Comprobando tu ubicación… Si el sistema pide permiso, acéptalo. Esto puede tardar unos segundos.
+      </p>
       <p *ngIf="geoState === 'blocked'">
         PARTILOT solo está disponible en territorio español. Detectamos que te encuentras fuera de España.
       </p>
       <p *ngIf="geoState === 'denied'">
-        Necesitamos acceso a tu ubicación para verificar que estás en España. Activa el permiso de ubicación e inténtalo de nuevo.
+        Necesitamos acceso a tu ubicación para verificar que estás en España. Activa el permiso de ubicación en Ajustes de la app e inténtalo de nuevo.
       </p>
       <p *ngIf="geoState === 'unavailable'">
-        No hemos podido comprobar tu ubicación. Activa el GPS e inténtalo de nuevo.
+        No hemos podido comprobar tu ubicación. Activa el GPS / ubicación del dispositivo e inténtalo de nuevo.
       </p>
       <ion-button expand="block" (click)="reintentarUbicacion()" [disabled]="geoState === 'checking'">
         Reintentar
